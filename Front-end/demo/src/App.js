@@ -1,33 +1,38 @@
 import logo from './logo.svg';
 import './App.css';
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
+
+import NavBar from './components/NavBar';
+import About from './pages/About';
+import Users from './pages/Users';
+import Home from './pages/Home';
 
 function App() {
 
 // you can a javascript 5 differents or more 
   
-  const handleSubmit = () => {
-
-    console.log("heello")
-  }
-
-  
   return (
     // JSX 
     <div className="App">
-    <h1 className="title"> Upload Your Claim Medical</h1>
-{/* add css react */}
-    <p> How much is your claim?</p>
-
-  {/* Form basically sends web request to a server
-  Wheres the server ? IP:port */}
-    <form method="POST"> 
-    <input type="text"/> 
-
-   
-    </form>
-    <button onClick={handleSubmit}> Submit Claim</button>
-    
-
+    <Router>
+      <NavBar/>
+    <Switch>
+          <Route path="/about">
+            <About />
+          </Route>
+          <Route path="/users">
+            <Users />
+          </Route>
+          <Route path="/">
+            <Home />
+          </Route>
+        </Switch>
+    </Router>
     </div>
   );
 }

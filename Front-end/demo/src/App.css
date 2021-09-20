@@ -1,3 +1,9 @@
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+html {
+  box-sizing: border-box;
+}
 .App {
   text-align: center;
 }
@@ -41,5 +47,61 @@
   }
   to {
     transform: rotate(360deg);
+  }
+}
+
+/* NavBar */
+/* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Aligning_Items_in_a_Flex_Container */
+.navbox {
+  display: flex;
+  flex-direction: row;
+  overflow: auto;
+  width: 100%;
+  background: #80CFA9;
+  padding: 20px;
+}
+
+.navbox a {
+  float: left;
+  padding: 12px;
+  color: white;
+  
+  text-decoration: none;
+  font-size: 17px;
+  width: 25%; /* Four links of equal widths */
+  text-align: center;
+}
+
+
+.icon {
+  width: 100px;
+  height: 100px;
+  padding:10px;
+  display: flex;
+  flex-direction: row;
+  padding:20px;
+  width: 25%;
+}
+a, a:hover, a:focus, a:active {
+  text-decoration: none;
+  color: inherit;
+}
+
+.navbox a:hover{
+  background:#4C6663;
+  transition: all .5s ease;
+-webkit-transition: all .5s ease;
+}
+
+.navbox a.active {
+  background-color: #04AA6D;
+}
+
+@media screen and (max-width: 500px) {
+  .navbox a {
+    float: none;
+    display: block;
+    width: 100%;
+    text-align: left;
   }
 }
