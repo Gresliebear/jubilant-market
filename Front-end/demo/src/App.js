@@ -10,7 +10,7 @@ function App() {
     console.log("heello")
   }
 
-  let Name = "Adil"
+  
   return (
     // JSX 
     <div className="App">
