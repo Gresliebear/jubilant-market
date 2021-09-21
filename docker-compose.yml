@@ -1,0 +1,13 @@
+services:
+  api:
+    build: 
+      context:
+      dockerfile: Dockerfile.api
+    image: app-api
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    image: react-app-client
+    ports:
+      - "3000:80"
