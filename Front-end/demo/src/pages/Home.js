@@ -1,14 +1,30 @@
 import React from 'react'
 import LineChart from '../components/LineChart'
 import Depoist from '../components/Depoist'
-
+import Withdraw from '../components/Withdraw'
 const Home = () => {
     return (
         <div>
         <div className="flex-box">
             <h2> Emergency Medical Fund </h2>
+            <div className="flex-child minibox">
             <LineChart></LineChart>
-            <Depoist typeOfCall="EMF"> </Depoist>
+            </div> 
+            <div className="flex-child minibox"> 
+                <div className="exchange"> 
+                    
+                    <label> 
+                    <input/>
+                    </label>
+                    
+                    <div className="exchange-child"> 
+                    <Depoist typeOfCall="EMF"> </Depoist>
+                    </div>
+                    <div className="exchange-child"> 
+                    <Withdraw typeOfCall="EMF"> </Withdraw>
+                    </div>
+                </div>
+            </div>
         </div>
         </div>
     )

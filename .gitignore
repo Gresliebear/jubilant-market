@@ -3,3 +3,4 @@
 *.py
 PythonServer/vessel_env/*
 /HardHatTest/node_modules/*
+*.ini
