@@ -25,20 +25,19 @@ contract PriceFeedInterface {
 }
 
 //inhertance 
-contract priceContract is PriceFeedInterface { 
-
-
-
-}
+//contract priceContract is PriceFeedInterface { }
 
 
 contract FetchPriceData {
 
-    //PriceFeedInterface priceContract = PriceFeedInterface();
+    PriceFeedInterface priceContract = new PriceFeedInterface();
     // Address for ChainLink  0.5% deivation
     //https://docs.chain.link/docs/reference-contracts/ 
     // define any address here to get its latest pricefeed
-    priceContract Work = new priceContract();
+    
+    // inheritance method
+    //priceContract Work = new priceContract();
+    
     // ADA / USD - Ethereum Mainnet index 0
     // 	0x882554df528115a743c4537828DA8D5B58e52544
     address ADA_USD = 0x882554df528115a743c4537828DA8D5B58e52544;
@@ -90,7 +89,9 @@ contract FetchPriceData {
         // Get Price Address for ETH/USD
         uint index = _fetchPriceAddress(_nameasset);
         address PriceAddress = PriceFeedsAddresses[index];
-        Work.getLatestPrice();
+
+        // CALL INTERFACE HERE
+        priceContract.getLatestPrice(PriceAddress);
 
     }
 
