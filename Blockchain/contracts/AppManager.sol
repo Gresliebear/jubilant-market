@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./StakeManager.sol";
+import "./fetchPriceData.sol";
 
 contract AppManager {
     address public owner;
@@ -10,7 +11,10 @@ contract AppManager {
     uint256 depositCount = 0;
     // mini stake of a dollar so pricefeed to check?!?
     uint256 minStake = 100_000 * (10**9); // 100k gwei | 0.0001 eth
-    
+    // pricefeed to set mini stake to $1?
+    string nameAsset = 'ETH/USD';
+    uint256 PriceEthUsd = FetchPriceData.GetPriceFeed(nameAsset);
+
     mapping(address => Deposit[]) deposits;
 
     // maybe unnecessary to structify
