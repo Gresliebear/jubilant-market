@@ -8,7 +8,9 @@ contract AppManager {
     StakeManager public stakeManager;
 
     uint256 depositCount = 0;
+    // mini stake of a dollar so pricefeed to check?!?
     uint256 minStake = 100_000 * (10**9); // 100k gwei | 0.0001 eth
+    
     mapping(address => Deposit[]) deposits;
 
     // maybe unnecessary to structify
