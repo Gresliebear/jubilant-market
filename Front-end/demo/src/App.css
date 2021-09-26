@@ -55,7 +55,31 @@ html {
   }
 }
 
+/* Metabar */
+.navbox2 {
+  display: flex;
+  background-color:#3369ff;
+  height:20px;
+}
 
+a.button6{
+  box-sizing: border-box;
+  /* font-family:'Roboto',sans-serif; */
+  text-transform:uppercase;
+  font-weight:400;
+  color:#FFFFFF;
+  text-align:center;
+  position:relative;
+  }
+  a.button6:active{
+  top:0.1em;
+  }
+  @media all and (max-width:30em){
+  a.button6{
+  display:block;
+  margin:0.4em auto;
+  }
+  }
 /* NavBar */
 /* https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_Flexible_Box_Layout/Aligning_Items_in_a_Flex_Container */
 .navbox {
@@ -63,19 +87,106 @@ html {
   flex-direction: row;
   overflow: auto;
   width: 100%;
-  background: #80CFA9;
-  padding: 20px;
+  background: #7cdb53;
+  padding: 10px;
 }
+
+.navbox p {
+  font-size: 14px;
+}
+
+.navbox img {
+  
+  height:75px;;
+   width:75px;
+   
+   padding-right: 20px;
+  }
 
 .navbox a {
   float: left;
   padding: 12px;
+  padding-top: 20px;
   color: white;
-  
+  box-shadow:inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17);
   text-decoration: none;
-  font-size: 17px;
+  font-size: 25px;
   width: 25%; /* Four links of equal widths */
   text-align: center;
+}
+
+.navbox div {
+  float: left;
+  padding: 12px;
+  padding-top: 20px;
+  color: white;
+  box-shadow:inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17);
+  text-decoration: none;
+  font-size: 25px;
+  width: 25%; /* Four links of equal widths */
+  text-align: center;
+}
+
+.navbox button {
+  float: left;
+  padding: 12px;
+  padding-top: 20px;
+  color: white;
+  box-shadow:inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17);
+  background: #7cdb53;
+  border: 0px !important;
+  font-size: 25px;
+  width: 25%; /* Four links of equal widths */
+  text-align: center;
+}
+
+.navbox label {
+  float: left;
+  padding: 12px;
+  padding-top: 20px;
+  color: white;
+  box-shadow:inset 0 -0.6em 0 -0.35em rgba(0,0,0,0.17);
+  background: #7cdb53;
+  border: 0px !important;
+  font-size: 25px;
+  width: 8%; /* Four links of equal widths */
+  text-align: center;
+}
+
+
+.navbox a:hover{
+  background:#fb0443;
+  color:#fff;
+  padding: 10px ;
+  width: 20%;
+ 
+  transition: all .8s ease;
+-webkit-transition: all .8s ease;
+}
+
+.navbox button:hover{
+  background:#fb0443;
+  color:#fff;
+  padding: 10px ;
+  width: 20%;
+ 
+  transition: all .8s ease;
+-webkit-transition: all .8s ease;
+}
+
+.navbox div:hover{
+  background:#fb0443;
+  color:#fff;
+  padding: 10px ;
+  width: 20%;
+ 
+  transition: all .8s ease;
+-webkit-transition: all .8s ease;
+}
+
+
+.navbox a.active {
+  background-color: #04AA6D;
 }
 
 
@@ -91,16 +202,6 @@ html {
 a, a:hover, a:focus, a:active {
   text-decoration: none;
   color: inherit;
-}
-
-.navbox a:hover{
-  background:#4C6663;
-  transition: all .5s ease;
--webkit-transition: all .5s ease;
-}
-
-.navbox a.active {
-  background-color: #04AA6D;
 }
 
 @media screen and (max-width: 500px) {
@@ -150,28 +251,43 @@ a, a:hover, a:focus, a:active {
 .flex-child {
   width: 50%;
   float: left;
-
+  Display: flex; 
+  flex-direction: row !important;
+  
 }
 
+.flex-child2 {
+  width: 50%;
+  float: left;
+
+  
+}
 .minibox{
   
   height:60%;
 }
 
 .exchange { 
-  width: 80%;
+  width: 60%;
   padding: 20px;
   text-align:center;
   border-color:#282c34;
   border-width: 2px;
   background-color: #fff;
   display: flex; 
-  flex-direction: row ;
   margin-left: 3%;
 }
 
 .exchange input{ 
 
+}
+
+.column-child {
+
+  Display: flex; 
+Flex-direction:  column;
+align-self: auto;
+justify-content: center;
 }
 
 /* .exchange-child { 

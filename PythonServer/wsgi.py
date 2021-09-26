@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, url_for, Blueprint, render_template, send_from_directory, current_app, session
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy  #you write python code to insert, update, delete, CRUD # pip install flask_sqlalchemy 
 from flask_migrate import Migrate
 from web3 import Web3
 from decouple import config
@@ -10,6 +10,10 @@ from abortCode import abort_if_userAddr_exists, abort_if_useraddr_doesnt_exist
 # Initilize Flask App
 # Each Api call is for the functionality of the React Front 
 # Or for initilizating Solidity SmartContract
+# EMF Emergency fund
+# Submit a claim 
+# Contribute Delegates
+
 app = Flask(__name__)
 cors = CORS(app)
 api = Api(app)
@@ -22,6 +26,7 @@ INFURA = config('PROID')
 API_KEY = config('WEB3_INFURA_API_SECRET')
 CORE_ACCOUNT = config('BUSINESSACCOUNT')
 
+# datatable SQLalchemy 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     userAddress = db.Column(db.String(32), unique=True, nullable=False )
@@ -31,6 +36,16 @@ class User(db.Model):
     def __repr__(self):
         return f"User('{self.userAddress}','{self.account_total}', '{self.latest_month}')"
 
+
+class UserDepoist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userAddress = db.Column(db.String(32), unique=True, nullable=False )
+    deposit = db.Column(db.Integer, unique=False, nullable=False )
+
+    def __repr__(self):
+        return f"UserDepoist('{self.userAddress}','{self.deposit}')"
+
+# MockUserData
 user_put_args = reqparse.RequestParser()
 user_put_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
 user_put_args.add_argument("account_total", type=int, help="account_total Require", required=True)
@@ -40,6 +55,20 @@ user_update_args = reqparse.RequestParser()
 user_update_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
 user_update_args.add_argument("account_total", type=int, help="account_total Require", required=True)
 user_update_args.add_argument("latest_month", type=int, help="latest_month Require", required=True)
+
+# EMFDeposit Validae Webrequest
+EMFDeposit_put_args = reqparse.RequestParser()
+EMFDeposit_put_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
+EMFDeposit_put_args.add_argument("Deposit", type=int, help="Deposit Require", required=True)
+
+# EMFDeposit Validae Webrequest
+EMFDeposit_get_args = reqparse.RequestParser()
+EMFDeposit_get_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
+
+# EMFDeposit Validae Webrequest
+EMFDeposit_patch_args = reqparse.RequestParser()
+EMFDeposit_patch_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
+EMFDeposit_patch_args.add_argument("Deposit", type=int, help="Deposit Require", required=True)
 
 
 # Data in memory
@@ -68,6 +97,11 @@ resource_fields = {
 	'account_total': fields.Integer,
 	'latest_month': fields.Integer,
 }
+resource_fields_EMF = {
+	'userAddress': fields.String,
+	'deposit': fields.Integer,
+}
+
 
 
 # return JSON serializable objects
@@ -85,7 +119,7 @@ class GetData(Resource):
 class MockUserData(Resource):
     @marshal_with(resource_fields)
     def get(self, userAddress):
-        print(userAddress)
+        print(userAddress) #32 address 0x0640340405304504 32 place bits waleet
         result = User.query.filter_by(userAddress=userAddress).first()
         if not result:
             abort(404, message="Could not find User Address")
@@ -127,34 +161,17 @@ class MockUserData(Resource):
         db.session.commit()
         return result
 
-    @marshal_with(resource_fields)
-    def delete(self, userAddress):
-        abort_if_useraddr_doesnt_exist(userAddress, User)
-        del users[userAddress]
-        return '', 204
-
-
-class EMF(Resource):
-    
-    def get(self, userAddress):
-        # check if existing account
-        return mockuserdata[userAddress]
-    
-    def deposit(self, userAddress, action):
-        return {"userAddress": userAddress, "action": action}
-
-    def put(self, userAddress):
-        return {"data":"Deposit Made!"}
-
+    # Delete Functionality will not be needed for Depositing
+    # @marshal_with(resource_fields)
+    # def delete(self, userAddress):
+    #     abort_if_useraddr_doesnt_exist(userAddress, User)
+    #     del users[userAddress]
+    #     return '', 204
 
 api.add_resource(JubilantMarket, "/jubilantmarket/<string:name>/<int:test>")
 api.add_resource(GetData, "/jubilantmarket/<string:name>")
 api.add_resource(MockUserData, "/jubilantmarket/mockuserdata/<string:userAddress>")
-api.add_resource(EMF, "/jubilantmarket/EMF/<string:userAddress>/<string:action>")
 
-# EMF Emergency fund
-# Submit a claim 
-# Contribute Delegates
 
 
 # Emergency Medical Fund Call 
@@ -173,6 +190,82 @@ api.add_resource(EMF, "/jubilantmarket/EMF/<string:userAddress>/<string:action>"
         # Parameters 
         # 
         # EMF Wallet Block hits limit to deposit into Stake Pool Addresss 
+
+class EMFDeposit(Resource):
+    # get request to check if useraddress is already resigter and part of the EMF
+    def get(self, userAddress):
+        print(userAddress)
+        
+        result = UserDepoist.query.filter_by(userAddress=userAddress).first()
+
+        if not result:
+            response_pay_load = { "message":"User doesnt exit", "existence":False  }
+            return response_pay_load, 200
+
+        response_pay_load = {  "message":"User exist already", "existence":True  }
+        return response_pay_load, 200
+    
+    # @marshal_with(resource_fields_EMF)
+    # initialize contract with the first deposit
+    def put(self, userAddress):
+        args = EMFDeposit_put_args.parse_args()
+        print(args['userAddress']) #32 address 0x0640340405304504 32 place bits waleet
+        # record the despoist
+        result = UserDepoist.query.filter_by(userAddress=args['userAddress']).first()
+
+        if result:
+            abort(409, message="UserAddress Exist already No dont initialize new smart contract")
+
+        # record the despoist
+        user = UserDepoist(userAddress=args['userAddress'],
+        deposit=args['Deposit'])
+
+        db.session.add(user)
+        db.session.commit()
+
+        # trigger deposit here
+
+        return user, 201
+
+
+    # @marshal_with(resource_fields_EMF)
+    def patch(self, userAddress):
+        print("this is patch")
+        args = EMFDeposit_patch_args.parse_args()
+        result = UserDepoist.query.filter_by(userAddress=userAddress).first()
+        print(result)
+        
+        # takes userAddress and record depoist to make more depoist to the EMF
+        account_total = result.deposit 
+        # bug if 1100 make float
+        if account_total > 1000.00:
+            response_pay_load = {  "message":"Over the account Deposit limit", "overlimit":True }
+            return response_pay_load, 200
+        # change deposit to float for interest rate 
+        new_total = int(account_total) + int(args['Deposit'])
+
+        if not result:
+            abort(404, message="Video doesn't exist, cannot update")
+
+        # if args['userAddress']:
+        #     result.userAddress = args['userAddress']
+        if args['Deposit']:
+            print(new_total)
+            result.deposit = new_total
+            db.session.commit()
+
+        
+        
+        response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
+        return response_pay_load, 200
+
+    @marshal_with(resource_fields_EMF)
+    def delete(self, userAddress):
+        abort_if_useraddr_doesnt_exist(userAddress, User)
+        del users[userAddress]
+        return '', 204
+
+api.add_resource(EMFDeposit, "/jubilantmarket/FrontEndEMF/<string:userAddress>")
 
 if __name__ == "__main__":
     app.run(debug=True)

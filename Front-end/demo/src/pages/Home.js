@@ -7,21 +7,19 @@ const Home = () => {
         <div>
         <div className="flex-box">
             <h2> Emergency Medical Fund </h2>
-            <div className="flex-child minibox">
+            <div className="flex-child2 ">
             <LineChart></LineChart>
             </div> 
             <div className="flex-child minibox"> 
                 <div className="exchange"> 
-                    
-                    <label> 
-                    <input/>
-                    </label>
-                    
-                    <div className="exchange-child"> 
-                    <Depoist typeOfCall="EMF"> </Depoist>
-                    </div>
-                    <div className="exchange-child"> 
-                    <Withdraw typeOfCall="EMF"> </Withdraw>
+                    <div className="column-child"> 
+                        <h2> Start a Medical Fund Below and start earning interest. </h2>
+                        <div className="exchange-child"> 
+                            <Depoist typeOfCall="EMF"> </Depoist>
+                        </div>
+                        <div className="exchange-child"> 
+                            <Withdraw typeOfCall="EMF"> </Withdraw>
+                        </div>
                     </div>
                 </div>
             </div>

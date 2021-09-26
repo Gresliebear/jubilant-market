@@ -7333,6 +7333,11 @@
   "resolved" "https://registry.npmjs.org/merge2/-/merge2-1.4.1.tgz"
   "version" "1.4.1"
 
+"metamask-react@^2.0.2":
+  "integrity" "sha512-e9cp66Rx8vW0M4MPneZYBUzDIawdoqhaVRST0mAxCEab6buv6LN37OEY18fSec8avhz3Mtr2w//j/pz2WhiOTQ=="
+  "resolved" "https://registry.npmjs.org/metamask-react/-/metamask-react-2.0.2.tgz"
+  "version" "2.0.2"
+
 "methods@~1.1.2":
   "integrity" "sha1-VSmk1nZUE07cxSZmVoNbD4Ua/O4="
   "resolved" "https://registry.npmjs.org/methods/-/methods-1.1.2.tgz"

@@ -30,6 +30,7 @@ contract PriceFeedInterface {
 
 contract FetchPriceData {
 
+    //suggestion encasplate int function pass _address
     PriceFeedInterface priceContract = new PriceFeedInterface();
     // Address for ChainLink  0.5% deivation
     //https://docs.chain.link/docs/reference-contracts/ 
