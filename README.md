@@ -16,6 +16,7 @@ The functionality of Jubilent Market Brings together three parties
 - **Insuree**   (Customer, User) -> Smart Contract EMF or Insurance Coverage
 - **Insurer**   (Company, DAO) -> Deploying Juilibant Market as a Pool or Wallet.
 - **Delegates** (Crypto traders, Investors) -> Contrubitions
+
 **Techical Details:**
 
 The Jubilent Market project uilitzes the Hardhat framework & templates to test, 
