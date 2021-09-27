@@ -1,7 +1,7 @@
 
 # Jubilant Market
+![output-onlinepngtools](https://user-images.githubusercontent.com/13157730/134841588-53ff3df5-73f8-4af0-ad2d-35215982b648.png)
 
-![Test Image 3](/jubilant-market/blob/main/Blockchain/output-onlinepngtools.png)
 ## What is Jubilant Market? 
 
 Jubilant Market is a set of Smart contract to be used by insurance companies, or DAO insurance. For this project we will provide a use case for HealthCare Insurance purely provided through blockchains. 
@@ -22,7 +22,7 @@ The Jubilent Market project uilitzes the Hardhat framework & templates to test,
 deployed Smart Contracts. Front-end is created in react, Back-end api built in flask_rest.py API to access Web3.py functionality to initialize Smart Contracts Outline below.
 
 
-![Test Image 3](/https://github.com/Gresliebear/jubilant-market/blob/main/Blockchain/Slide5.png)
+![Slide5](https://user-images.githubusercontent.com/13157730/134841600-09e22967-ccc3-48fa-893f-3ee672a56344.png)
 
 ## How to use Jubilant Market?
 You will need to set Wallet Address or Pool Address in .env of Jubilant (Config.json)
