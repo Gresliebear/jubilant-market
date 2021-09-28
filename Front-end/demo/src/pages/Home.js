@@ -5,8 +5,8 @@ import Withdraw from '../components/Withdraw'
 const Home = () => {
     return (
         <div>
-        <div className="flex-box">
-            <h2> Emergency Medical Fund </h2>
+        <div className="flex-box font-face-sn">
+            <h1> Emergency Medical Fund </h1>
             <div className="flex-child2 ">
             <LineChart></LineChart>
             </div> 

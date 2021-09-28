@@ -11,3 +11,19 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Font calls */
+
+/* Next, import the fonts into the index.js file.
+import './fonts/Goldman/Goldman-Bold.ttf'; */
+
+@font-face {
+font-family: "ScheherazadeNew";
+src: local("ScheherazadeNew"),
+ url("./fonts/ScheherazadeNew-Regular.ttf") format("truetype");
+}
+
+/* Now add a class name in the App.css file that uses this family name. */
+.font-face-sn {
+ font-family: "ScheherazadeNew-Regular";
+}

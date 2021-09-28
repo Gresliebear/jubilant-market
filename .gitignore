@@ -4,3 +4,6 @@
 PythonServer/vessel_env/*
 /HardHatTest/node_modules/*
 *.ini
+PythonServer/database.db
+PythonServer/migrations/README
+PythonServer/migrations/script.py.mako

@@ -216,20 +216,51 @@ a, a:hover, a:focus, a:active {
 /* button desgin */
 
 .btn-main { 
-  width: 170px;
-  height: 55px;
+  width: 165px;
+  height: 60px;
   font-size: 20px;
-  background: #04AA6D;
+  
+  color:#fff;
+  background: #7cdb53;
   margin: 2%;
-  border-width: 2px;
-  border-color: #4C6663;
-  border-radius: 8px;
+  border-width: 0px !important;
+  /* border-color: #4C6663; */
+
 }
+
+@media screen and (max-width: 1275px) {
+  .btn-main {
+    display:block;
+    margin:0.4em auto;
+  }
+}
+
+.errorCss p {
+  color:red !important;
+}
+
 
 .btn-main:hover{
-  background: black;
+  background: #fb0443;
+  transition: all .8s ease;
+  -webkit-transition: all .8s ease;
 }
-
+/* Forward */
+.hvr-forward {
+  display: inline-block;
+  vertical-align: middle;
+  -webkit-transform: perspective(1px) translateZ(0);
+  transform: perspective(1px) translateZ(0);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+  -webkit-transition-duration: 0.3s;
+  transition-duration: 0.3s;
+  -webkit-transition-property: transform;
+  transition-property: transform;
+}
+.hvr-forward:hover, .hvr-forward:focus, .hvr-forward:active {
+  -webkit-transform: translateX(8px);
+  transform: translateX(8px);
+}
 /* D4C5E2 */
 /* C9D7F8 */
 /*  A7E2E3 */
@@ -295,3 +326,22 @@ justify-content: center;
   float: left;
 
 } */
+
+.depositCss input{
+  
+  width: 50%;
+  padding: 15px 25px;
+  margin: 8px 0;
+  
+box-sizing: border-box;
+}
+
+.withdrawCss input {
+  
+  width: 50%;
+  padding: 15px 25px;
+  margin: 8px 0;
+  
+  box-sizing: border-box;
+
+}

@@ -5,8 +5,28 @@ const Depoist = (props) => {
     const action = 'deposit'
     const { status, connect, account } = useMetaMask();
     const [connected, setConnected] = useState("");
-    
+    const [totalAmount, setAmount] = useState(0);
+    const [depositError, setError] = useState("");
 
+
+    const AmountHandler = (event) => {
+    
+        console.log("Handler",)
+        if(event.target.value <= 1000 || event.target.value !=0 ) {
+            setError("");
+        }
+        if(event.target.value > 1000) {
+            setError("Deposit cannot be over 1000");
+            return;
+        }
+        console.log("Hello event?")
+        // pass input number  
+        setAmount(event.target.value);
+        
+        
+    }
+
+    // create users
     async function BackEndEMF(_address) {
     const domainUrl = 'http://127.0.0.1:5000'; // put int env
     const url = '/jubilantmarket/FrontEndEMF/'    
@@ -85,7 +105,8 @@ const Depoist = (props) => {
         }
         }
 
-    async function DepositEMF(_address) {
+    //PATCH
+    async function DepositEMF(_address, _amount) {
             const domainUrl = 'http://127.0.0.1:5000'; // put int env
             const url = '/jubilantmarket/FrontEndEMF/'    
             const address = _address
@@ -99,7 +120,7 @@ const Depoist = (props) => {
             },
             body: JSON.stringify({ 
                 "userAddress":_address,
-                "Deposit":100
+                "Deposit":_amount
             })
         
             }
@@ -124,13 +145,27 @@ const Depoist = (props) => {
     const handleClick = () => {
     if (props.typeOfCall === 'EMF'){
         console.log(props.typeOfCall, action)
+        
+        //validation code
+        if(totalAmount != 0 && totalAmount < 1000) {
+            setError("");
+        }
+
+        if(totalAmount > 1000) {
+            setError("Deposit cannot be greater than 1000");
+        }
+        if(totalAmount == 0) {
+            setError("Deposit cannot be Zero");
+        }
+        
+        
         // we call api for information pass Useraddress
         // fetch
         if(account === "" || account === null || account == undefined){
             setConnected("You need to connect with a MetaMask account")
             } else {
+
             // first question is does user account already exist? 
-            //so we can take a async function put .then to wait for the response pass results 
             CheckUserExistence(account).then(function(conditionalCheck){ // get request
             console.log("ok",conditionalCheck)
             console.log(conditionalCheck === true)
@@ -139,9 +174,12 @@ const Depoist = (props) => {
             //to contribute to the existencing total
             if(conditionalCheck === true) {  
                 console.log("Deposit")
+                console.log(totalAmount)
                 setConnected(" ");
-                DepositEMF(account);
+
+                DepositEMF(account, totalAmount);
                             // check if account is overlimit 
+
             } else{ // else we create a account and initialize smart contract
                 BackEndEMF(account);
             }
@@ -162,10 +200,12 @@ const Depoist = (props) => {
 
 
     return (
-        <div>
+        <div className="depositCss font-face-sn">
         <p> {account} </p>
             <p> {connected} </p>
-            <button className="btn-main" onClick={handleClick}> Deposit to {props.typeOfCall} </button>
+            <input type="number" onChange={AmountHandler}/>
+            <button className="btn-main hvr-forward" onClick={handleClick}> Deposit to {props.typeOfCall} </button>
+            <p className="errorCss"> {depositError}</p>
         </div>
     )
 }

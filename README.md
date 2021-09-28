@@ -31,7 +31,7 @@ You will need to set Wallet Address or Pool Address in .env of Jubilant (Config.
 - Front-end is for Development (Not Production)
 - Python API is for passing Addresses from front-end to Smart Contracts
 - Admint Login to Check Health Smart Contract Market 
-- API call to monitor the health the Pool or Wallet
+- API call to monitor the health of the Pool or Wallet
 
 ## In-depth Technical/Finanical Explainations 
 - Described at google docs for EthGlobal https://drive.google.com/drive/folders/1wItQmyBMxhJAUvtqhIM-Jju8De8NK5Sk?usp=sharing
@@ -72,3 +72,16 @@ Through the API:
 - Sign the transaction locally
 - Submit signed transaction
 - We submit it on their behalf
+
+### To DO list Les
+- refactor Front-end code 
+  - Deposit components
+  - Withdraw components
+  - AmountHandlers
+  - PythonServer wsgi Refactor completely
+- Connect Web.py to Solidity EMF.sol 
+
+- Create EMF contract 
+  - test unit test EMF
+  - EMF deployed on testnet
+  - test infor feed to PythonServer

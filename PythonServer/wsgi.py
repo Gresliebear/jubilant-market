@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, url_for, Blueprint, render_template, send_from_directory, current_app, session
+from datetime import datetime
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy  #you write python code to insert, update, delete, CRUD # pip install flask_sqlalchemy 
 from flask_migrate import Migrate
@@ -37,13 +38,16 @@ class User(db.Model):
         return f"User('{self.userAddress}','{self.account_total}', '{self.latest_month}')"
 
 
+# UserDepoist needs to be renamed to UsersRecords
+# rename deposit to account total
 class UserDepoist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    userAddress = db.Column(db.String(32), unique=True, nullable=False )
+    userAddress = db.Column(db.String(32), unique=True, nullable=False)
+    txn_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) 
     deposit = db.Column(db.Integer, unique=False, nullable=False )
 
     def __repr__(self):
-        return f"UserDepoist('{self.userAddress}','{self.deposit}')"
+        return f"UserDepoist('{self.userAddress}','{self.deposit}', {self.txn_date})"
 
 # MockUserData
 user_put_args = reqparse.RequestParser()
@@ -61,14 +65,19 @@ EMFDeposit_put_args = reqparse.RequestParser()
 EMFDeposit_put_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
 EMFDeposit_put_args.add_argument("Deposit", type=int, help="Deposit Require", required=True)
 
-# EMFDeposit Validae Webrequest
+# GET parse still not function TypeERROS
+# EMFDeposit Validae Webrequest GET
 EMFDeposit_get_args = reqparse.RequestParser()
 EMFDeposit_get_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
 
-# EMFDeposit Validae Webrequest
+# EMFDeposit Validae Webrequest PATCH
 EMFDeposit_patch_args = reqparse.RequestParser()
 EMFDeposit_patch_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
 EMFDeposit_patch_args.add_argument("Deposit", type=int, help="Deposit Require", required=True)
+
+# EMFWithdraw Validate Webrequest
+EMFWithdraw_get_args = reqparse.RequestParser()
+EMFWithdraw_get_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
 
 
 # Data in memory
@@ -172,6 +181,22 @@ api.add_resource(JubilantMarket, "/jubilantmarket/<string:name>/<int:test>")
 api.add_resource(GetData, "/jubilantmarket/<string:name>")
 api.add_resource(MockUserData, "/jubilantmarket/mockuserdata/<string:userAddress>")
 
+@app.route('/UploadCall', methods=['POST'])
+def UploadCall(): 
+    print(request)
+    if request.method == 'POST':
+        print(request.files)
+        if 'file' not in request.files:
+            print('No file part')
+        file = request.files['file']
+        print(file)
+        # print(file.read())
+        response_pay_load = {  "message":"Image Upload Successed"  }
+        return response_pay_load, 200
+
+    response_pay_load = {  "message":"Image Upload Failed"  }
+    return response_pay_load, 200
+
 
 
 # Emergency Medical Fund Call 
@@ -190,7 +215,7 @@ api.add_resource(MockUserData, "/jubilantmarket/mockuserdata/<string:userAddress
         # Parameters 
         # 
         # EMF Wallet Block hits limit to deposit into Stake Pool Addresss 
-
+# 
 class EMFDeposit(Resource):
     # get request to check if useraddress is already resigter and part of the EMF
     def get(self, userAddress):
@@ -223,7 +248,7 @@ class EMFDeposit(Resource):
         db.session.add(user)
         db.session.commit()
 
-        # trigger deposit here
+        # trigger deposit Web3.py Initializes SmartContract !!!!! <EMFDeposit> 
 
         return user, 201
 
@@ -237,6 +262,17 @@ class EMFDeposit(Resource):
         
         # takes userAddress and record depoist to make more depoist to the EMF
         account_total = result.deposit 
+        print("current account total", account_total)
+        print("new deposit submitted", args['Deposit'])
+        print(type(args['Deposit']))
+
+        if args['Deposit'] == 0:
+            response_pay_load = {  "message":"Deposits cannot be zero", "amountError":True }
+            return response_pay_load, 200
+
+        # trigger deposit Web3.py Initializes SmartContract !!!!! <EMFDeposit> 
+
+
         # bug if 1100 make float
         if account_total > 1000.00:
             response_pay_load = {  "message":"Over the account Deposit limit", "overlimit":True }
@@ -245,7 +281,7 @@ class EMFDeposit(Resource):
         new_total = int(account_total) + int(args['Deposit'])
 
         if not result:
-            abort(404, message="Video doesn't exist, cannot update")
+            abort(404, message="User doesn't exist, cannot update")
 
         # if args['userAddress']:
         #     result.userAddress = args['userAddress']
@@ -265,7 +301,33 @@ class EMFDeposit(Resource):
         del users[userAddress]
         return '', 204
 
-api.add_resource(EMFDeposit, "/jubilantmarket/FrontEndEMF/<string:userAddress>")
+class EMFWithdraw(Resource):
+    # get users balance
+    def get(self,userAddress):
+        print(userAddress)
+        result = UserDepoist.query.filter_by(userAddress=userAddress).first()
+        
+        if not result:
+            abort(404, message="User doesn't exist, cannot get User's Balance")
+        
+        balance = result.deposit 
 
+        response_pay_load = {  "message":"Balance returned", "balance":balance }
+        return response_pay_load, 200
+
+    def put(self):
+
+
+        response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
+        return response_pay_load, 200
+
+    def patch(self):
+        response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
+        return response_pay_load, 200
+    
+
+# we do implement subclasses for /FrontEndEMF/EMFDeposit or /FrontEndEMF/EMFWithdraw
+api.add_resource(EMFDeposit, "/jubilantmarket/FrontEndEMF/<string:userAddress>")
+api.add_resource(EMFWithdraw, "/jubilantmarket/EMFWithdraw/<string:userAddress>")
 if __name__ == "__main__":
     app.run(debug=True)
