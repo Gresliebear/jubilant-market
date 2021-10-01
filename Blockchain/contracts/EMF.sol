@@ -24,17 +24,18 @@ function InterestEarnedCall(uint _accountBalance, uint _APY) internal returns(ui
     // 
     uint muiltplier;
     uint InterestEarned; 
+    uint APM;
     // %3.00
     // Monthly APY is caluated 
-    _APM = _APY / 12;
+    APM = _APY / 12;
     // divided by 100 convert out of percent
-    muiltplier = _APY / 100;
+    muiltplier = APM  / 100;
     // Interest based off the Users Total accountBalance
     InterestEarned = _accountBalance * muiltplier;
     // Call is made to recorded the InterestedEarned so 
     // when the user Withdraw it Withdraws with the InterestedEarned. 
 
-    return InterestEarned
+    return InterestEarned;
 }
 
 // EMFreturnUser'sAPY per month 

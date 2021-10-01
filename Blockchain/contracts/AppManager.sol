@@ -2,18 +2,31 @@
 pragma solidity ^0.8.0;
 
 import "./StakeManager.sol";
-import "./fetchPriceData.sol";
+import "./interfaces/PriceConsumerV3.sol";
+
+interface PriceFeedInterface { 
+    function getLatestPrice() external view returns(int);
+}
+
 
 contract AppManager {
     address public owner;
     StakeManager public stakeManager;
-    FetchPriceData public fetchPriceData;
+
     uint256 depositCount = 0;
     // mini stake of a dollar so pricefeed to check?!?
     uint256 minStake = 100_000 * (10**9); // 100k gwei | 0.0001 eth
     // pricefeed to set mini stake to $1?
-    string nameAsset = "ETH/USD";
-    uint256 PriceEthUsd = fetchPriceData.GetPriceFeed(nameAsset);
+    //string memory nameAsset = "ETH/USD";
+        /**
+     * Network: Kovan
+     * Aggregator: ETH/USD
+    */
+    address ETH_USD = 0x9326BFA02ADD2366b30bacB125260Af641031331;
+    function _getPrice() internal view returns(int){
+        
+        PriceFeedInterface(ETH_USD).getLatestPrice();
+    }
 
     mapping(address => Deposit[]) deposits;
 
@@ -84,5 +97,10 @@ contract AppManager {
             _total += _deposits[ii].amount;
         }
         return _total;
+    }
+
+    // test Price From ChainLink
+    function ViewPriceOfEth() public view returns(int) { 
+        return _getPrice();
     }
 }

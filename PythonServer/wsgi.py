@@ -4,6 +4,7 @@ from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy  #you write python code to insert, update, delete, CRUD # pip install flask_sqlalchemy 
 from flask_migrate import Migrate
 from web3 import Web3
+import json 
 from decouple import config
 from flask_cors import CORS, cross_origin
 from abortCode import abort_if_userAddr_exists, abort_if_useraddr_doesnt_exist
@@ -49,6 +50,16 @@ class UserDepoist(db.Model):
     def __repr__(self):
         return f"UserDepoist('{self.userAddress}','{self.deposit}', {self.txn_date})"
 
+class UserTxnGraph(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userAddress = db.Column(db.String(32), unique=False, nullable=False)
+    txn_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) 
+    txnAmount = db.Column(db.Integer, unique=False, nullable=False )
+
+    def __repr__(self):
+        return f"UserDepoist('{self.userAddress}','{self.txnAmount}', {self.txn_date})"
+
+
 # MockUserData
 user_put_args = reqparse.RequestParser()
 user_put_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
@@ -78,6 +89,12 @@ EMFDeposit_patch_args.add_argument("Deposit", type=int, help="Deposit Require", 
 # EMFWithdraw Validate Webrequest
 EMFWithdraw_get_args = reqparse.RequestParser()
 EMFWithdraw_get_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
+
+
+# EMFDeposit Validae Webrequest
+EMFWithdraw_put_args = reqparse.RequestParser()
+EMFWithdraw_put_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
+EMFWithdraw_put_args.add_argument("Withdraw", type=int, help="Deposit Require", required=True)
 
 
 # Data in memory
@@ -244,13 +261,16 @@ class EMFDeposit(Resource):
         # record the despoist
         user = UserDepoist(userAddress=args['userAddress'],
         deposit=args['Deposit'])
-
+        
+        # first record transaction
+        record = UserTxnGraph(userAddress=args['userAddress'], txnAmount=args['Deposit'])
+        db.session.add(record)
         db.session.add(user)
         db.session.commit()
 
         # trigger deposit Web3.py Initializes SmartContract !!!!! <EMFDeposit> 
-
-        return user, 201
+        response_pay_load = {  "message":"Inital deposit Made" }
+        return response_pay_load, 200
 
 
     # @marshal_with(resource_fields_EMF)
@@ -265,12 +285,16 @@ class EMFDeposit(Resource):
         print("current account total", account_total)
         print("new deposit submitted", args['Deposit'])
         print(type(args['Deposit']))
+        test_account_total = account_total + args['Deposit'] 
+        if test_account_total > 1000:
+            response_pay_load = {  "message":"Deposits cannot surpass 1000", "amountError":True }
+            return response_pay_load, 200
 
         if args['Deposit'] == 0:
             response_pay_load = {  "message":"Deposits cannot be zero", "amountError":True }
             return response_pay_load, 200
 
-        # trigger deposit Web3.py Initializes SmartContract !!!!! <EMFDeposit> 
+        # trigger deposit again to SmartContract !!!!! <EMFDeposit> 
 
 
         # bug if 1100 make float
@@ -279,6 +303,11 @@ class EMFDeposit(Resource):
             return response_pay_load, 200
         # change deposit to float for interest rate 
         new_total = int(account_total) + int(args['Deposit'])
+
+        # record transaction
+        record = UserTxnGraph(userAddress=args['userAddress'], txnAmount=new_total)
+        db.session.add(record)
+        db.session.commit()
 
         if not result:
             abort(404, message="User doesn't exist, cannot update")
@@ -315,10 +344,42 @@ class EMFWithdraw(Resource):
         response_pay_load = {  "message":"Balance returned", "balance":balance }
         return response_pay_load, 200
 
-    def put(self):
+    def put(self, userAddress):
+        # EMFWithdraw_put_args
+        args = EMFWithdraw_put_args.parse_args()
+        print("withdraw", args['Withdraw'])
+        result = UserDepoist.query.filter_by(userAddress=userAddress).first()
+        balance = result.deposit 
+        print("current balance", balance)
+
+        if balance < 0:
+            response_pay_load = {  "message":"Balance Cannot be negative", "amountError":True }
+            return response_pay_load, 200
+        # CheckBalance() #call EMF.sol 
+            # does balance match? 
+            # if not EMF.sol has priority
+        new_balance = balance - args['Withdraw']
+        print("new balance", new_balance)
+        # WithdrawCall for EMF.sol #Call EMF.sol here for withdraw
+            # parameter UserAddress, amountWithdraw
+
+        # record Withdraw transaction by taking latest balance - withdraw ammount
+        record = UserTxnGraph(userAddress=args['userAddress'], txnAmount=new_balance)
+        db.session.add(record)
+        db.session.commit()
+
+        # record Withdraw
+        if args['Withdraw']:
+            print(new_balance)
+            result.deposit = new_balance
+            db.session.commit()
+
+        if args['Withdraw'] == 0:
+            response_pay_load = {  "message":"Deposits cannot be zero", "amountError":True }
+            return response_pay_load, 200
 
 
-        response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
+        response_pay_load = {  "message":"Transaction recorded and made!!", "overlimit":False }
         return response_pay_load, 200
 
     def patch(self):
@@ -326,8 +387,48 @@ class EMFWithdraw(Resource):
         return response_pay_load, 200
     
 
+def rows_to_array(rows):
+    return [r._asdict() for r in rows]
+
+class EMFviewbalance(Resource):
+    def get(self, userAddress):
+        print(userAddress)
+        dataDict = UserTxnGraph.query.filter_by(userAddress=userAddress).all()
+        print(dataDict)
+
+        # Struct python?
+        dataObj = { 
+            "accountTotal":[],
+            "txn_date":[]
+        }
+
+
+        dataObj2 = {} 
+        case_list = []
+        for r in dataDict:
+            print(r.txnAmount)
+            print(r.txn_date)
+            case ={'accountTotal':r.txnAmount,'txn_date':str(r.txn_date)}
+            case_list.append(case)
+        # jsonPass = jsonify(dataObj)
+        # print(jsonPass)
+        # print(type(jsonPass))
+        json_object = json.dumps(case_list)
+        response_pay_load = {  "message":"Current Balance", "overlimit":False }
+        return json_object, 200
+
+    def put(self, userAddress):
+        response_pay_load = {  "message":"Current Balance", "overlimit":False }
+        return response_pay_load, 200
+
+    def patch(self, userAddress):
+        response_pay_load = {  "message":"Current Balance", "overlimit":False }
+        return response_pay_load, 200
+
 # we do implement subclasses for /FrontEndEMF/EMFDeposit or /FrontEndEMF/EMFWithdraw
-api.add_resource(EMFDeposit, "/jubilantmarket/FrontEndEMF/<string:userAddress>")
+api.add_resource(EMFDeposit, "/jubilantmarket/EMFDeposit/<string:userAddress>")
 api.add_resource(EMFWithdraw, "/jubilantmarket/EMFWithdraw/<string:userAddress>")
+api.add_resource(EMFviewbalance, "/jubilantmarket/EMFviewbalance/<string:userAddress>")
+
 if __name__ == "__main__":
     app.run(debug=True)

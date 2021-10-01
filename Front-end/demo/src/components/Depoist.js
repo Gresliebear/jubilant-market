@@ -10,26 +10,29 @@ const Depoist = (props) => {
 
 
     const AmountHandler = (event) => {
-    
-        console.log("Handler",)
+
         if(event.target.value <= 1000 || event.target.value !=0 ) {
             setError("");
+
         }
         if(event.target.value > 1000) {
             setError("Deposit cannot be over 1000");
-            return;
+
+        }
+        if(event.target.value < 0){
+            setError("You cannot withdraw less than zero")
         }
         console.log("Hello event?")
         // pass input number  
         setAmount(event.target.value);
-        
+        console.log("work?", totalAmount)
         
     }
 
     // create users
-    async function BackEndEMF(_address) {
+    async function BackEndEMF(_address, _amount) {
     const domainUrl = 'http://127.0.0.1:5000'; // put int env
-    const url = '/jubilantmarket/FrontEndEMF/'    
+    const url = '/jubilantmarket/EMFDeposit/'    
     const address = _address
     const test = domainUrl + url + address
     
@@ -41,7 +44,7 @@ const Depoist = (props) => {
     },
     body: JSON.stringify({ 
         "userAddress":_address,
-        "Deposit":100
+        "Deposit":_amount
     })
 
     }
@@ -68,7 +71,7 @@ const Depoist = (props) => {
 
     async function CheckUserExistence(_address) {
         const domainUrl = 'http://127.0.0.1:5000'; // put int env
-        const url = '/jubilantmarket/FrontEndEMF/'    
+        const url = '/jubilantmarket/EMFDeposit/'    
         const address = _address
         const test = domainUrl + url + address
         console.log(test)
@@ -108,7 +111,7 @@ const Depoist = (props) => {
     //PATCH
     async function DepositEMF(_address, _amount) {
             const domainUrl = 'http://127.0.0.1:5000'; // put int env
-            const url = '/jubilantmarket/FrontEndEMF/'    
+            const url = '/jubilantmarket/EMFDeposit/'    
             const address = _address
             const test = domainUrl + url + address
             console.log("PATCHING")
@@ -167,7 +170,6 @@ const Depoist = (props) => {
 
             // first question is does user account already exist? 
             CheckUserExistence(account).then(function(conditionalCheck){ // get request
-            console.log("ok",conditionalCheck)
             console.log(conditionalCheck === true)
             //backwards compability will be a issue
             // if user does exist allow Deposit to contiune 
@@ -181,7 +183,7 @@ const Depoist = (props) => {
                             // check if account is overlimit 
 
             } else{ // else we create a account and initialize smart contract
-                BackEndEMF(account);
+                BackEndEMF(account, totalAmount);
             }
         });
     }
