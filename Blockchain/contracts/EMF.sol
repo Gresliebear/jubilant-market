@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity 0.6.12;
 
 import "./AppManager.sol";
 
@@ -8,11 +8,34 @@ import "./AppManager.sol";
 // app Manager Will be the insurance float
 contract EMF is AppManager { 
 
-// user or msg.sender can deposit or withdraw anytime
-function EMFDepositToAppManager() external {
-    // limit is $1,000 nothing above 
 
-    //Depoist to EMF required parameters?
+    uint256 depositLimit;
+    address userAddress;
+
+    //error 
+    string depositFailedStatement = "Deposit Not Made Over the limit";
+// user or msg.sender can deposit or withdraw anytime
+function EMFDepositToAppManager(address _userAddress) external returns(string memory _externalMsg) {
+    
+    // check if user has exisiting EMFcontract?
+
+    // check if userBalance is currently overlimit disallow deposit
+        
+        // limit is $1,000 nothing above 
+        depositLimit = 1000;
+        require(balanceOf(_userAddress) == depositLimit);
+
+    // check if userBalance + deposit pushes deposit overlimit
+
+    // if not contiune depositoAppManager
+    if(depositLimit <= 1000) {
+      //Depoist to EMF required parameters?
+
+        deposit();
+    } else {
+    // else stop deposit
+    return depositFailedStatement;
+    }
 
 }
 
@@ -47,10 +70,20 @@ function EMFInterest() external {
 }
 
 // Function to View the total account balance + Interest Earned
-function ViewEMFTotal() view external{
+function ViewEMFTotal(address _userAddress) view external returns(uint256){
 
     // view the total recorded deposit
+    //balance = balanceOf(_userAddress);
+    return balanceOf(_userAddress);
+}
 
+// Function Check if Contract Ended
+function ViewContractLife(address _userAddress)  view external returns(uint) {
+
+    // Check userbalance if its 0 
+        // if contract is 0 Contract Concludes (internal function of App Manager) 
+        // Reactivate by deposit 
+        // Not Reacttivatted by Withdraw 
 }
 
 }

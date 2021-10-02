@@ -150,7 +150,7 @@ const Depoist = (props) => {
         console.log(props.typeOfCall, action)
         
         //validation code
-        if(totalAmount != 0 && totalAmount < 1000) {
+        if(totalAmount !== 0 && totalAmount < 1000) {
             setError("");
         }
 
@@ -164,7 +164,7 @@ const Depoist = (props) => {
         
         // we call api for information pass Useraddress
         // fetch
-        if(account === "" || account === null || account == undefined){
+        if(account === "" || account === null || account === undefined){
             setConnected("You need to connect with a MetaMask account")
             } else {
 
@@ -179,7 +179,16 @@ const Depoist = (props) => {
                 console.log(totalAmount)
                 setConnected(" ");
 
-                DepositEMF(account, totalAmount);
+                DepositEMF(account, totalAmount).then(function(overlimit){
+
+                    console.log("Over the limit?", overlimit)
+                    if(!overlimit){
+                        console.log("REDIRECT!!!!");
+                        //window.location.reload();
+                    }else {
+                        setError("Transaction failed over deposit limit");
+                    }
+                })
                             // check if account is overlimit 
 
             } else{ // else we create a account and initialize smart contract

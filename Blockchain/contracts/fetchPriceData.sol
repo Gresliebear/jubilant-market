@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity 0.6.12;
 
 import "./interfaces/AggregatorV3Interface.sol";
 
@@ -7,7 +7,7 @@ contract PriceFeedInterface {
 
     AggregatorV3Interface internal priceFeed;
     
-    constructor(address _priceAddress) {
+    constructor(address _priceAddress) public {
         priceFeed = AggregatorV3Interface(_priceAddress);
     }
 

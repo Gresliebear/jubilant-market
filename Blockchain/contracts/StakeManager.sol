@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity 0.6.12;
 
 // a blind pool of funds that can be allocated as best seen fit
 
@@ -7,7 +7,7 @@ contract StakeManager {
     address public owner;
     address public appManager;
 
-    constructor() {
+    constructor() public {
         // owner wouldn't really be used unless in emergencies
         // for this contract
         owner = msg.sender;

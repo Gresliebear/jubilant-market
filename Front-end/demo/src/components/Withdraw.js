@@ -95,7 +95,6 @@ const Withdraw = (props) => {
             const domainUrl = 'http://127.0.0.1:5000'; // put int env
             const url = '/jubilantmarket/EMFWithdraw/'    
             const address = _address
-            const test = domainUrl + url + address
             
             // Options
             const opts = { 
@@ -153,7 +152,7 @@ const Withdraw = (props) => {
             setError("")
         }
 
-        if(event.target.value == 0){
+        if(event.target.value === 0){
             setError("You cannot withdraw zero")
         }else {
             setError("")

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {useMetaMask} from 'metamask-react';
 import { Line } from "react-chartjs-2";
-import axios from "axios";
 
 const LineChart = () => {
     // we gonna need to past UserAddress or Username 
@@ -13,7 +12,7 @@ const LineChart = () => {
     const domainUrl = 'http://127.0.0.1:5000';
     const url = '/jubilantmarket/EMFviewbalance/'    
     const usersaddr = _address // pass userAddress here through props
-    const test = domainUrl + url + usersaddr
+    //const test = domainUrl + url + usersaddr
 
     const opts = { 
       method:'GET', 

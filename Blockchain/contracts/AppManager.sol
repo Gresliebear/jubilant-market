@@ -1,13 +1,15 @@
 //SPDX-License-Identifier: Unlicense
-pragma solidity ^0.8.0;
+pragma solidity 0.6.12;
 
 import "./StakeManager.sol";
 import "./interfaces/PriceConsumerV3.sol";
+//import "./interfaces/AAVE/ILendingPool.sol";
+import {ILendingPool} from "@aave/protocol-v2/contracts/interfaces/ILendingPool.sol";
+import {ILendingPoolAddressesProvider} from "@aave/protocol-v2/contracts/interfaces/ILendingPoolAddressesProvider.sol";
 
 interface PriceFeedInterface { 
     function getLatestPrice() external view returns(int);
 }
-
 
 contract AppManager {
     address public owner;
@@ -16,17 +18,31 @@ contract AppManager {
     uint256 depositCount = 0;
     // mini stake of a dollar so pricefeed to check?!?
     uint256 minStake = 100_000 * (10**9); // 100k gwei | 0.0001 eth
-    // pricefeed to set mini stake to $1?
+    
+    // ENTRY POINT FOR AAVE required pragma solidity 0.6.12;
+    // addresses -> https://docs.aave.com/developers/deployed-contracts/deployed-contracts
+    // Kovan testnet 0x88757f2f99175387aB4C6a4b3067c77A695b0349
+
+    //Error: Transaction reverted: function call to a non-contract account
+    //ILendingPoolAddressesProvider provider = ILendingPoolAddressesProvider(0x88757f2f99175387aB4C6a4b3067c77A695b0349);
+    //ILendingPool lendingPool = ILendingPool(provider.getLendingPool());
+    
+    // CHAINLINK PRICEFEED INTERFACE
     //string memory nameAsset = "ETH/USD";
-        /**
-     * Network: Kovan
-     * Aggregator: ETH/USD
-    */
+        
+    //Network: Kovan
+    //Aggregator: ETH/USD
     address ETH_USD = 0x9326BFA02ADD2366b30bacB125260Af641031331;
     function _getPrice() internal view returns(int){
         
         PriceFeedInterface(ETH_USD).getLatestPrice();
     }
+
+    // AAVE INTERFACE 
+    // owneraddress will make deposits, withdraws, loans internally
+    // but publicly display its health to Insuree, Delegates, Owner
+    // "All of AAVE's functionalities available in testnet is the same in the mainnet app,"
+
 
     mapping(address => Deposit[]) deposits;
 
@@ -44,7 +60,7 @@ contract AppManager {
         uint256 indexed timestamp
     );
 
-    constructor() {
+    constructor() public {
         owner = msg.sender;
     }
 
@@ -93,6 +109,7 @@ contract AppManager {
     function balanceOf(address _account) public view returns (uint256) {
         uint256 _total;
         Deposit[] storage _deposits = deposits[_account];
+        // What does this line do?
         for (uint256 ii; ii < _deposits.length; ii++) {
             _total += _deposits[ii].amount;
         }

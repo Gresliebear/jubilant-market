@@ -7,8 +7,8 @@ let nineExp = 10n ** 9n;
 describe("Setup", function () {
   // deployer is muiltsign wallet
   let deployer, act1, act2, act3;
-  let AppManager, StakeManager;
-  let app, stake;
+  let AppManager, StakeManager, EmfContract;
+  let app, stake, emf;
 
   beforeEach(async () => {
     console.log("Before");
@@ -23,6 +23,10 @@ describe("Setup", function () {
     StakeManager = await hre.ethers.getContractFactory("StakeManager");
     stake = await StakeManager.deploy();
     stake.deployed();
+
+    EmfContract = await hre.ethers.getContractFactory("EMF");
+    emf = await EmfContract.deploy();
+    emf.deployed();
 
   });
 
@@ -40,6 +44,10 @@ describe("Setup", function () {
     await stake.setAppManager(app.address);
   });
 
+  // it("It should allow EMF to be set", async function () {
+  //   await emf.setEmfContract(app.address);
+  // });
+
   describe("Main", function () {
     beforeEach(async () => {
       let tx = await app.setStakeManager(stake.address);
@@ -53,16 +61,16 @@ describe("Setup", function () {
       let tx2 = app.connect(act1).deposit({ value: 100_000n * nineExp });
     });
 
-    // call price View of Ethereum
+    // // call price View of Ethereum
     it("It should show us priceFeed of Eth from Chainlink", async function () {
     // (node:50424) UnhandledPromiseRejectionWarning: Error: Transaction reverted: function call to a non-contract account
     // It means, the interface is trying to call a contract that doesn't exist.
     let price = await app.ViewPriceOfEth();
-      price.then(function () {
-            console.log("Promise Resolved");
-      }).catch(function () {
-            console.log("Promise Rejected");
-      });
+    price.then(function () {
+          console.log("Promise Resolved");
+    }).catch(function () {
+          console.log("Promise Rejected");
+    });
     });
 
   });
