@@ -3,6 +3,8 @@ pragma solidity 0.6.12;
 
 import "./StakeManager.sol";
 import "./interfaces/PriceConsumerV3.sol";
+import "./ownable.sol";
+
 //import "./interfaces/AAVE/ILendingPool.sol";
 import {ILendingPool} from "@aave/protocol-v2/contracts/interfaces/ILendingPool.sol";
 import {ILendingPoolAddressesProvider} from "@aave/protocol-v2/contracts/interfaces/ILendingPoolAddressesProvider.sol";

@@ -9,7 +9,7 @@ const NavBar = () => {
                     <label><img src={Logo}/> </label>
                     <Link to="/"> Emergency Medical Fund </Link>
                     <Link to="/about">Submit Claim</Link>
-                    <Link to="/users">Contribute Delegates </Link>
+                    <Link to="/users">Delegates Contributions</Link>
                     <MetaBar></MetaBar>
         </div>
     )

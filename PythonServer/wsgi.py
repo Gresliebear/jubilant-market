@@ -269,6 +269,9 @@ class EMFDeposit(Resource):
         db.session.commit()
 
         # trigger deposit Web3.py Initializes SmartContract !!!!! <EMFDeposit> 
+        
+
+
         response_pay_load = {  "message":"Inital deposit Made" }
         return response_pay_load, 200
 

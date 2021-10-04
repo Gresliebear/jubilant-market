@@ -1,56 +1,33 @@
 import React, {useState} from 'react'
-
+import Upload from '../components/Upload';
+import Depoist from '../components/Depoist';
+import Withdraw from '../components/Withdraw';
+import Insurancetimeline from '../components/Insurancetimeline';
 const About = () => {
-        const [selectedFile, setSelectedFile] = useState();
-        const [isSelected, setIsSelected] = useState(false);
-    
-        const changeHandler = (event) => {
-            setSelectedFile(event.target.files[0]);
-            setIsSelected(true);
-        };
-    
-        const handleSubmission = () => {
-            const formData = new FormData();
-    
-            formData.append('file', selectedFile);
-    
-            fetch(
-                'http://127.0.0.1:5000/UploadCall',
-                {
-                    method: 'POST',
-                    body: formData,
-                }
-            )
-                .then((response) => response.json())
-                .then((result) => {
-                    console.log('Success:', result);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        }
-
-
 
     return (
         <div>
-        <input type="file" name="file" onChange={changeHandler} />
-			{isSelected ? (
-				<div>
-					<p>Filename: {selectedFile.name}</p>
-					<p>Filetype: {selectedFile.type}</p>
-					<p>Size in bytes: {selectedFile.size}</p>
-					<p>
-						lastModifiedDate:{' '}
-						{selectedFile.lastModifiedDate.toLocaleDateString()}
-					</p>
-				</div>
-			) : (
-				<p>Select a file to show details</p>
-			)}
-			<div>
-				<button onClick={handleSubmission}>Submit</button>
-			</div>
+        <div className="flex-box font-face-sn CardPage"> 
+        <h1> <b> Insurance Coverage </b> : Use Case Car Damage </h1>
+        <Insurancetimeline/>
+        
+      
+                <div className="exchange"> 
+                    <div className="column-child"> 
+                        <h2> Purchase an Car Inusrance Policy by deposit. </h2>
+                        <p> Policy Details go here</p>
+                        <div className="exchange-child"> 
+                            <Depoist typeOfCall="Claim"> </Depoist>
+                        </div>
+                        <div className="exchange-child"> 
+                            <Withdraw typeOfCall="Claim"> </Withdraw>
+                        </div>
+                    </div>
+             
+        </div>
+
+        <Upload/>
+        </div>
     </div>
     )
 }
