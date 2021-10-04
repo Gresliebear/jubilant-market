@@ -4,11 +4,11 @@ import Logo from "../images/logo.png"
 import MetaBar from './MetaBar'
 const NavBar = () => {
     return (
-        <div className="navbox">
+        <div className="navbox font-face-sn">
         
                     <label><img src={Logo}/> </label>
                     <Link to="/"> Emergency Medical Fund </Link>
-                    <Link to="/about">Submit Claim</Link>
+                    <Link to="/about">Insurance Coverage</Link>
                     <Link to="/users">Delegates Contributions</Link>
                     <MetaBar></MetaBar>
         </div>

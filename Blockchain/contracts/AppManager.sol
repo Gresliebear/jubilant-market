@@ -122,4 +122,78 @@ contract AppManager {
     function ViewPriceOfEth() public view returns(int) { 
         return _getPrice();
     }
+
+    uint256 depositLimit;
+    //EMF errorMsg for APIs or Dapp
+    string depositFailedStatement = "Deposit Not Made Over the limit";
+
+    function EMFCall(address _userAddress) external returns(string memory _externalMsg) { 
+    
+    // Check if user has existing EMFcontract? with _userAddress
+    // check if userBalance is currently overlimit disallow deposit
+        // limit is $1,000 nothing above 
+    // check if userBalance + deposit pushes deposit overlimit
+    depositLimit = 1000;
+    require(balanceOf(_userAddress) == depositLimit);
+    }
+
+    if(depositLimit <= 1000) {
+      //Depoist to EMF required parameters?
+
+        deposit();
+    } else {
+    // else stop deposit
+    return depositFailedStatement;
+    }
+
+    // add interest to userAccount Deposit 
+    InterestEarnedCall()
+
+    } 
+
+
+    // EMFreturnUser'sAPY per month 
+    function ViewEMFInterest() external {
+
+        // total of users account balance 
+        // account_balance + InterestEarn
+
+    }
+
+    // Function to View the total account balance + Interest Earned
+function ViewEMFTotal(address _userAddress) view external returns(uint256){
+
+    // view the total recorded deposit
+    //balance = balanceOf(_userAddress);
+    return balanceOf(_userAddress);
+}
+
+
+
+    uint EMFAPY;
+    // Interest calulated based of total deposit of userAccount 
+    //  returns number needed to withdraw from insurance float and add to userAccouent 
+    // when withdraw is triggered.
+    function InterestEarnedCall(uint _accountBalance, uint _APY) internal returns(uint _InterestEarned) { 
+
+        // userAddress, _account_balace
+        // 
+        uint muiltplier;
+        uint InterestEarned; 
+        uint APM;
+        // %3.00
+        // Monthly APY is caluated 
+        APM = _APY / 12;
+        // divided by 100 convert out of percent
+        muiltplier = APM  / 100;
+        // Interest based off the Users Total accountBalance
+        InterestEarned = _accountBalance * muiltplier;
+        // Call is made to recorded the InterestedEarned so 
+        // when the user Withdraw it Withdraws with the InterestedEarned. 
+
+        return InterestEarned;
+    }
+
+
+// End of Contract
 }
