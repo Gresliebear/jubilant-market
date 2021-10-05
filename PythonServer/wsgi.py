@@ -5,10 +5,12 @@ from flask_sqlalchemy import SQLAlchemy  #you write python code to insert, updat
 from flask_migrate import Migrate
 from web3 import Web3
 import json 
+from JSONserailzer import JSONtoBLOB, BLOBtoJSON
 from decouple import config
 from flask_cors import CORS, cross_origin
 from abortCode import abort_if_userAddr_exists, abort_if_useraddr_doesnt_exist
-
+from datetime import date, timedelta
+from dateutil.relativedelta import relativedelta
 # Initilize Flask App
 # Each Api call is for the functionality of the React Front 
 # Or for initilizating Solidity SmartContract
@@ -57,8 +59,48 @@ class UserTxnGraph(db.Model):
     txnAmount = db.Column(db.Integer, unique=False, nullable=False )
 
     def __repr__(self):
-        return f"UserDepoist('{self.userAddress}','{self.txnAmount}', {self.txn_date})"
+        return f"UserTxnGraph('{self.userAddress}','{self.txnAmount}', {self.txn_date})"
 
+class UserClaimDepoist(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userAddress = db.Column(db.String(32), unique=True, nullable=False)
+    txn_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) 
+    account_total = db.Column(db.Integer, unique=False, nullable=False )
+
+    def __repr__(self):
+        return f"UserClaimDepoist('{self.userAddress}','{self.deposit}', {self.txn_date})"
+
+class ContractTruthTable(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userAddress = db.Column(db.String(32), unique=True, nullable=False)
+    SmartContractInitialized = db.Column(db.Boolean, default=False, nullable=False) # When contract is insitailized set to True
+    MonthlyPaymentMade = db.Column(db.Boolean, default=False, nullable=False) # Internal function checks when contract was initilized sets to False if payment was missied 
+    WithdrawAcess = db.Column(db.Boolean, default=False, nullable=False) #Only unlocks (all payments/End of Life Contract)
+    SubmitClaim = db.Column(db.Boolean, default=False, nullable=False) # True When Initial payment is made/ if not missed payments for 60 days
+
+    def __repr__(self):
+        return f"ContractTruthTable('{self.userAddress}')"
+
+# User Insurance Transcation Record - Records every TXN 
+class UserClaimTxnGraph(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userAddress = db.Column(db.String(32), unique=False, nullable=False)
+    txn_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) 
+    txnAmount = db.Column(db.Integer, unique=False, nullable=False )
+
+    def __repr__(self):
+        return f"UserClaimTxnGraph('{self.userAddress}','{self.txnAmount}', {self.txn_date})"
+
+class Timeline(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userAddress = db.Column(db.String(32), unique=False, nullable=False)
+    MonthlyPayment = db.Column(db.Integer, unique=False, nullable=False )
+    JSONData = db.Column(db.LargeBinary, nullable=False) # seralize de-seralize for timeline.js
+    START_DATE = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    END_DATE = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f"Timeline('{self.userAddress}')"
 
 # MockUserData
 user_put_args = reqparse.RequestParser()
@@ -96,6 +138,12 @@ EMFWithdraw_put_args = reqparse.RequestParser()
 EMFWithdraw_put_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
 EMFWithdraw_put_args.add_argument("Withdraw", type=int, help="Deposit Require", required=True)
 
+# ClaimDeposit Validate Web requesttt
+# EMFDeposit Validae Webrequest
+ClaimDeposit_put_args = reqparse.RequestParser()
+ClaimDeposit_put_args.add_argument("userAddress", type=str, help="UserAddress Require", required=True)
+ClaimDeposit_put_args.add_argument("Deposit", type=int, help="Deposit Require", required=True)
+
 
 # Data in memory
 names = { 
@@ -127,7 +175,10 @@ resource_fields_EMF = {
 	'userAddress': fields.String,
 	'deposit': fields.Integer,
 }
-
+def yearsago(years, from_date=None):
+    if from_date is None:
+        from_date = datetime.now()
+    return from_date + relativedelta(years=years)
 
 
 # return JSON serializable objects
@@ -269,7 +320,7 @@ class EMFDeposit(Resource):
         db.session.commit()
 
         # trigger deposit Web3.py Initializes SmartContract !!!!! <EMFDeposit> 
-        
+
 
 
         response_pay_load = {  "message":"Inital deposit Made" }
@@ -322,8 +373,6 @@ class EMFDeposit(Resource):
             result.deposit = new_total
             db.session.commit()
 
-        
-        
         response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
         return response_pay_load, 200
 
@@ -432,6 +481,133 @@ class EMFviewbalance(Resource):
 api.add_resource(EMFDeposit, "/jubilantmarket/EMFDeposit/<string:userAddress>")
 api.add_resource(EMFWithdraw, "/jubilantmarket/EMFWithdraw/<string:userAddress>")
 api.add_resource(EMFviewbalance, "/jubilantmarket/EMFviewbalance/<string:userAddress>")
+
+# 
+# Insurance Policy API 
+# UserClaimDepoist
+# ContractTruthTable
+# UserClaimTxnGraph
+class ClaimDeposit(Resource):
+    # check user Existence for Insurance Policy
+    def get(self, userAddress):
+        print(userAddress)
+        
+        # Model for insurance policy
+        result = UserClaimDepoist.query.filter_by(userAddress=userAddress).first()
+        # Web3 call here
+
+        if not result:
+            response_pay_load = { "message":"User doesnt exit", "existence":False  }
+            return response_pay_load, 200
+
+        response_pay_load = {  "message":"User exist already", "existence":True  }
+        return response_pay_load, 200
+    
+    def patch(self, userAddress):
+        print("this is patch")
+        args = EMFDeposit_patch_args.parse_args()
+        result = UserDepoist.query.filter_by(userAddress=userAddress).first()
+        print(result)
+        
+        # takes userAddress and record depoist to make more depoist to the EMF
+        account_total = result.deposit 
+        print("current account total", account_total)
+        print("new deposit submitted", args['Deposit'])
+        print(type(args['Deposit']))
+        test_account_total = account_total + args['Deposit'] 
+        if test_account_total > 1000:
+            response_pay_load = {  "message":"Deposits cannot surpass 1000", "amountError":True }
+            return response_pay_load, 200
+
+        if args['Deposit'] == 0:
+            response_pay_load = {  "message":"Deposits cannot be zero", "amountError":True }
+            return response_pay_load, 200
+
+        # trigger deposit again to SmartContract !!!!! <EMFDeposit> 
+
+
+        # bug if 1100 make float
+        if account_total > 1000.00:
+            response_pay_load = {  "message":"Over the account Deposit limit", "overlimit":True }
+            return response_pay_load, 200
+        # change deposit to float for interest rate 
+        new_total = int(account_total) + int(args['Deposit'])
+
+        # record transaction
+        record = UserClaimTxnGraph(userAddress=args['userAddress'], txnAmount=new_total)
+        db.session.add(record)
+        db.session.commit()
+
+        if not result:
+            abort(404, message="User doesn't exist, cannot update")
+
+        # if args['userAddress']:
+        #     result.userAddress = args['userAddress']
+        if args['Deposit']:
+            print(new_total)
+            result.deposit = new_total
+            db.session.commit()
+
+        response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
+        return response_pay_load, 200
+
+    # initialize contract with the first deposit
+    def put(self, userAddress):
+        args = ClaimDeposit_put_args.parse_args()
+        print(args['userAddress']) #32 address 0x0640340405304504 32 place bits waleet
+        # record the despoist
+        result = UserClaimDepoist.query.filter_by(userAddress=args['userAddress']).first()
+
+        if result:
+            abort(409, message="UserAddress Exist already No dont initialize new smart contract")
+
+        # record the despoist
+        user = UserClaimDepoist(userAddress=args['userAddress'],
+        account_total=args['Deposit'])
+        
+        # first record transaction
+        record = UserClaimTxnGraph(userAddress=args['userAddress'], txnAmount=args['Deposit'])
+
+        # Establish a TruthTable
+        truth = ContractTruthTable(userAddress=args['userAddress'], 
+        SmartContractInitialized=True, 
+        MonthlyPaymentMade=True, 
+        WithdrawAcess=False,
+        SubmitClaim=True )
+
+        # JSON to Blob
+        blob = JSONtoBLOB()
+        # today's date is the start date
+        today = date.today()
+        print(today)
+        # End date
+        yesterday = yearsago(years=1, from_date=today)
+        print(yesterday)
+
+        # Establish Timeline
+        timeline = Timeline(userAddress=args['userAddress'], 
+        MonthlyPayment=args['Deposit'],
+        JSONData=blob,
+        START_DATE=today,
+        END_DATE=yesterday
+          )
+
+        # Database Commit & add
+        db.session.add(record)
+        db.session.add(truth)
+        db.session.add(timeline)
+        db.session.add(user)
+        db.session.commit()
+
+        # trigger deposit Web3.py Initializes SmartContract !!!!! Insurance Claim Here
+
+
+
+        response_pay_load = {  "message":"Inital deposit Made for Insurance Policy" }
+        return response_pay_load, 200
+
+api.add_resource(ClaimDeposit, "/jubilantmarket/ClaimDeposit/<string:userAddress>")
+
 
 if __name__ == "__main__":
     app.run(debug=True)

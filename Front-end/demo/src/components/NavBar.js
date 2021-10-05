@@ -7,9 +7,10 @@ const NavBar = () => {
         <div className="navbox font-face-sn">
         
                     <label><img src={Logo}/> </label>
-                    <Link to="/"> Emergency Medical Fund </Link>
+                    <Link to="/Emf"> Emergency Medical Fund </Link>
                     <Link to="/about">Insurance Coverage</Link>
                     <Link to="/users">Delegates Contributions</Link>
+                    <Link to="/login"> Verifier Login </Link>
                     <MetaBar></MetaBar>
         </div>
     )

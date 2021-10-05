@@ -2,7 +2,7 @@ import React from 'react'
 import LineChart from '../components/LineChart'
 import Depoist from '../components/Depoist'
 import Withdraw from '../components/Withdraw'
-const Home = () => {
+const Emf = () => {
     return (
         <div>
         <div className="flex-box font-face-sn">
@@ -28,4 +28,4 @@ const Home = () => {
     )
 }
 
-export default Home
+export default Emf

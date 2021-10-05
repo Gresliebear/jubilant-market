@@ -9,8 +9,8 @@ import {
 import NavBar from './components/NavBar';
 import About from './pages/About';
 import Users from './pages/Users';
-import Home from './pages/Home';
-
+import Emf from './pages/EMF';
+import Login from './pages/Login';
 function App() {
 
 // you can a javascript 5 differents or more 
@@ -27,9 +27,13 @@ function App() {
           <Route path="/users">
             <Users />
           </Route>
-          <Route path="/">
-            <Home />
+          <Route path="/Emf">
+            <Emf />
           </Route>
+          <Route path="/login">
+          <Login/>
+          </Route>
+
         </Switch>
     </Router>
     </div>

@@ -168,6 +168,15 @@ function ViewEMFTotal(address _userAddress) view external returns(uint256){
     return balanceOf(_userAddress);
 }
 
+// Function Check if Contract Ended
+function ViewContractLife(address _userAddress)  view external returns(uint) {
+
+    // Check userbalance if its 0 
+        // if contract is 0 Contract Concludes (internal function of App Manager) 
+        // Reactivate by deposit 
+        // Not Reacttivatted by Withdraw 
+}
+
 
 
     uint EMFAPY;

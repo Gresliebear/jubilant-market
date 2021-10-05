@@ -1,6 +1,6 @@
 import React, {useState} from 'react'
 import {useMetaMask} from 'metamask-react'
-
+import { validatClaimAmount, DepositClaim, CheckUserExistenceClaim, InitializeInsurancePolicy } from './DepositFunctions.js/DepositCall'
 const Depoist = (props) => {
     const action = 'deposit'
     const { status, connect, account } = useMetaMask();
@@ -146,62 +146,84 @@ const Depoist = (props) => {
             }
     // were going to trigger EMF api
     const handleClick = () => {
-    if (props.typeOfCall === 'EMF'){
-        console.log(props.typeOfCall, action)
-        
-        //validation code
-        if(totalAmount !== 0 && totalAmount < 1000) {
-            setError("");
-        }
-
-        if(totalAmount > 1000) {
-            setError("Deposit cannot be greater than 1000");
-        }
-        if(totalAmount == 0) {
-            setError("Deposit cannot be Zero");
-        }
-        
-        
-        // we call api for information pass Useraddress
-        // fetch
-        if(account === "" || account === null || account === undefined){
-            setConnected("You need to connect with a MetaMask account")
-            } else {
-
-            // first question is does user account already exist? 
-            CheckUserExistence(account).then(function(conditionalCheck){ // get request
-            console.log(conditionalCheck === true)
-            //backwards compability will be a issue
-            // if user does exist allow Deposit to contiune 
-            //to contribute to the existencing total
-            if(conditionalCheck === true) {  
-                console.log("Deposit")
-                console.log(totalAmount)
-                setConnected(" ");
-
-                DepositEMF(account, totalAmount).then(function(overlimit){
-
-                    console.log("Over the limit?", overlimit)
-                    if(!overlimit){
-                        console.log("REDIRECT!!!!");
-                        //window.location.reload();
-                    }else {
-                        setError("Transaction failed over deposit limit");
-                    }
-                })
-                            // check if account is overlimit 
-
-            } else{ // else we create a account and initialize smart contract
-                BackEndEMF(account, totalAmount);
+        if (props.typeOfCall === 'EMF'){
+            console.log(props.typeOfCall, action)
+            
+            //validation code
+            if(totalAmount !== 0 && totalAmount < 1000) {
+                setError("");
             }
-        });
-    }
-        // 
 
+            if(totalAmount > 1000) {
+                setError("Deposit cannot be greater than 1000");
+            }
+            if(totalAmount == 0) {
+                setError("Deposit cannot be Zero");
+            }
+            
+            
+            // we call api for information pass Useraddress
+            // fetch
+            if(account === "" || account === null || account === undefined){
+                setConnected("You need to connect with a MetaMask account")
+                } else {
 
+                // first question is does user account already exist? 
+                CheckUserExistence(account).then(function(conditionalCheck){ // get request
+                console.log(conditionalCheck === true)
+                // if user does exist allow Deposit to contiune 
+                //to contribute to the existencing total
+                if(conditionalCheck === true) {  
+                    console.log("Deposit")
+                    console.log(totalAmount)
+                    setConnected(" ");
+
+                    DepositEMF(account, totalAmount).then(function(overlimit){
+
+                        console.log("Over the limit?", overlimit)
+                        if(!overlimit){
+                            console.log("REDIRECT!!!!");
+                            //window.location.reload();
+                        }else {
+                            setError("Transaction failed over deposit limit");
+                        }
+                    })
+                                // check if account is overlimit 
+
+                } else{ // else we create a account and initialize smart contract
+                    BackEndEMF(account, totalAmount);
+                }
+            });
         }
+    }
+
     if (props.typeOfCall === 'Claim'){
             console.log(props.typeOfCall)
+            let statement = validatClaimAmount(totalAmount)
+            setError(statement);
+            // bug if Deposit cannot be Zero code contiunes with request
+            if(account === "" || account === null || account === undefined){
+                setConnected("You need to connect with a MetaMask account")
+                } else {
+                    CheckUserExistenceClaim(account).then(function(conditionalCheck){ // get request
+                        if(conditionalCheck === true) {  
+                            console.log("Monthly Deposits for Insurance Policy")
+                            console.log(totalAmount)
+                            setConnected(" ");
+                            DepositClaim(account, totalAmount).then(function(overlimit){
+                                console.log("Over the limit?", overlimit)
+                                if(!overlimit){
+                                    console.log("REDIRECT!!!!");
+                                    //window.location.reload();
+                                }else {
+                                    setError("Transaction failed over deposit limit");
+                                }
+                            })
+                        } else{ // else initialize smart contract
+                            InitializeInsurancePolicy(account, totalAmount);
+                        }
+                    });
+                }
         }
 
     if (props.typeOfCall === 'CD'){
