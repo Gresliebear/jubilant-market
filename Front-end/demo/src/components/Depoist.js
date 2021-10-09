@@ -1,6 +1,8 @@
 import React, {useState} from 'react'
 import {useMetaMask} from 'metamask-react'
 import { validatClaimAmount, DepositClaim, CheckUserExistenceClaim, InitializeInsurancePolicy } from './DepositFunctions.js/DepositCall'
+import EarlyDeposit from './popups/EarlyDeposit'
+
 const Depoist = (props) => {
     const action = 'deposit'
     const { status, connect, account } = useMetaMask();
@@ -8,6 +10,8 @@ const Depoist = (props) => {
     const [totalAmount, setAmount] = useState(0);
     const [depositError, setError] = useState("");
 
+    // popup state
+    const [butttonPopup, setButtonPoup] = useState(false)
 
     const AmountHandler = (event) => {
 
@@ -201,7 +205,7 @@ const Depoist = (props) => {
             console.log(props.typeOfCall)
             let statement = validatClaimAmount(totalAmount)
             setError(statement);
-            // bug if Deposit cannot be Zero code contiunes with request
+            // bug if Deposit cannot be Zero
             if(account === "" || account === null || account === undefined){
                 setConnected("You need to connect with a MetaMask account")
                 } else {
@@ -210,9 +214,17 @@ const Depoist = (props) => {
                             console.log("Monthly Deposits for Insurance Policy")
                             console.log(totalAmount)
                             setConnected(" ");
-                            DepositClaim(account, totalAmount).then(function(overlimit){
-                                console.log("Over the limit?", overlimit)
-                                if(!overlimit){
+                            DepositClaim(account, totalAmount).then(function(data){
+                                console.log("Over the limit?", data)
+                        
+                                if(data.message === "Verify Payment Early Payment for next Month"){
+                                    console.log("test conditional");
+                                    
+                                    // trigger pop up with msg Verify Payment Early Payment for next Month
+                                    setButtonPoup(true);
+                                }
+                                
+                                if(true){
                                     console.log("REDIRECT!!!!");
                                     //window.location.reload();
                                 }else {
@@ -238,6 +250,8 @@ const Depoist = (props) => {
             <p> {connected} </p>
             <input type="number" onChange={AmountHandler}/>
             <button className="btn-main hvr-forward" onClick={handleClick}> Deposit to {props.typeOfCall} </button>
+            <EarlyDeposit trigger={butttonPopup} setTrigger={setButtonPoup}> 
+             </EarlyDeposit>
             <p className="errorCss"> {depositError}</p>
         </div>
     )

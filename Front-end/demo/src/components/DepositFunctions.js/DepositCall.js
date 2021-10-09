@@ -23,14 +23,14 @@ export async function DepositClaim(_address, _amount) {
     try{
     const response = await fetch(`${domainUrl}${url}${address}`, opts)
     if(response.status !== 200){
-            alert("There is error with API called to EMFDeposit");
+            alert("Error with API called to ClaimDeposit");
             const data = await response.json();
-            console.log("this came from the backend", data);
+            console.log("from the backend", data);
         
         }
         const data = await response.json();
-            console.log("Deposit", data);
-            return data.overlimit
+            console.log("Deposit Claim", data);
+            return data
         // setStore({return_msg: data.message});
 
     }catch(error){

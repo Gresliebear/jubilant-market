@@ -1,9 +1,10 @@
-from flask import Flask, request, jsonify, url_for, Blueprint, render_template, send_from_directory, current_app, session
+from flask import Flask, request, jsonify, url_for, Blueprint, render_template, send_from_directory, current_app, session, copy_current_request_context
 from datetime import datetime
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy  #you write python code to insert, update, delete, CRUD # pip install flask_sqlalchemy 
 from flask_migrate import Migrate
 from web3 import Web3
+import requests
 import json 
 from JSONserailzer import JSONtoBLOB, BLOBtoJSON
 from decouple import config
@@ -11,12 +12,19 @@ from flask_cors import CORS, cross_origin
 from abortCode import abort_if_userAddr_exists, abort_if_useraddr_doesnt_exist
 from datetime import date, timedelta
 from dateutil.relativedelta import relativedelta
+import time 
+from time import strftime
+import atexit
+from apscheduler.schedulers.background import BackgroundScheduler
+import threading
+from PIL import Image
+from io import BytesIO
 # Initilize Flask App
 # Each Api call is for the functionality of the React Front 
 # Or for initilizating Solidity SmartContract
-# EMF Emergency fund
-# Submit a claim 
-# Contribute Delegates
+    # EMF Emergency fund
+    # Submit a claim 
+    # Contribute Delegates
 
 app = Flask(__name__)
 cors = CORS(app)
@@ -26,10 +34,9 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 API_USERNAME = config('HOME')
-INFURA = config('PROID')
-API_KEY = config('WEB3_INFURA_API_SECRET')
-CORE_ACCOUNT = config('BUSINESSACCOUNT')
-
+INSURANCEFLOATADDRESS = config('ADDRESSOWNER')
+# InsuranceFloatTest - Test Wallet acting as Smart Contract Owner/Insurance Float 
+# 0x013B271BCe05645698E772AA256A0D113785032d
 # datatable SQLalchemy 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -61,6 +68,17 @@ class UserTxnGraph(db.Model):
     def __repr__(self):
         return f"UserTxnGraph('{self.userAddress}','{self.txnAmount}', {self.txn_date})"
 
+class PhotosTable(db.Model):
+    __tablename__ = 'PhotosTable'
+    id = db.Column(db.Integer, primary_key=True)  
+    date_uploaded = db.Column(db.DateTime, nullable=False, default=datetime.utcnow) 
+    userAddress = db.Column(db.String(32), unique=True, nullable=False)
+    photo = db.Column(db.LargeBinary, nullable=False)
+    thumbnail = db.Column(db.LargeBinary, nullable=False)
+
+    def __repr__(self):
+        return f"PhotosTable('{self.date_uploaded}')"
+
 class UserClaimDepoist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     userAddress = db.Column(db.String(32), unique=True, nullable=False)
@@ -70,6 +88,7 @@ class UserClaimDepoist(db.Model):
     def __repr__(self):
         return f"UserClaimDepoist('{self.userAddress}','{self.deposit}', {self.txn_date})"
 
+# tracking User's accessbility
 class ContractTruthTable(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     userAddress = db.Column(db.String(32), unique=True, nullable=False)
@@ -91,9 +110,13 @@ class UserClaimTxnGraph(db.Model):
     def __repr__(self):
         return f"UserClaimTxnGraph('{self.userAddress}','{self.txnAmount}', {self.txn_date})"
 
+# insrance How long does this insurance live for?
+# the number of seconds since 1970/01/01 00:00:00 UTC
 class Timeline(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     userAddress = db.Column(db.String(32), unique=False, nullable=False)
+    Month = db.Column(db.String(32), unique=False, nullable=False)
+    WasPaid = db.Column(db.Boolean, default=False, nullable=False) #set true
     MonthlyPayment = db.Column(db.Integer, unique=False, nullable=False )
     JSONData = db.Column(db.LargeBinary, nullable=False) # seralize de-seralize for timeline.js
     START_DATE = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
@@ -101,6 +124,15 @@ class Timeline(db.Model):
     
     def __repr__(self):
         return f"Timeline('{self.userAddress}')"
+
+# Tracking the size of the Insurance Pool
+class InsuranceFloat(db.Model): 
+    id = db.Column(db.Integer, primary_key=True)
+    InsuranceFloatAddress = db.Column(db.String(32), unique=True, nullable=False)
+    InsuranceFloatTotal = db.Column(db.Float, unique=False, nullable=False )
+
+    def __repr__(self):
+        return f"InsuranceFloat('{self.InsuranceFloatAddress}')"
 
 # MockUserData
 user_put_args = reqparse.RequestParser()
@@ -175,13 +207,36 @@ resource_fields_EMF = {
 	'userAddress': fields.String,
 	'deposit': fields.Integer,
 }
+
 def yearsago(years, from_date=None):
     if from_date is None:
         from_date = datetime.now()
     return from_date + relativedelta(years=years)
 
+# How many days ago
+def daysago(today_date, start_date=None):
+    if start_date is None:
+        return "missing start_date"
 
-# return JSON serializable objects
+    dt = datetime.combine(date.today(), datetime.min.time())
+
+    elapsed_time = dt - start_date
+    return elapsed_time
+
+def photo_to_thumbnail(imageObj):
+    tn = imageObj
+    size = (300, 300)
+    tn.thumbnail(size)
+    # convert thumbnail to bytes
+    def imgToBytes(img):
+        img_bytes = BytesIO()
+        img.save(img_bytes, format='PNG')
+        img_bytes = img_bytes.getvalue()
+        return img_bytes
+    tn_bytes = imgToBytes(tn)
+
+    return tn_bytes
+
 class JubilantMarket(Resource):
     def get(self, name, test):
         return {"name": name, "test":test}
@@ -256,8 +311,12 @@ def UploadCall():
         print(request.files)
         if 'file' not in request.files:
             print('No file part')
-        file = request.files['file']
-        print(file)
+        photo = request.files['file']
+        print(type(photo))
+        PhotoBlob = photo.read()
+        Photothumbnail = photo_to_thumbnail(photo.read())
+        PhotosTable(userAddress= photo=PhotoBlob, thumbnail=Photothumbnail )
+
         # print(file.read())
         response_pay_load = {  "message":"Image Upload Successed"  }
         return response_pay_load, 200
@@ -288,7 +347,6 @@ class EMFDeposit(Resource):
     # get request to check if useraddress is already resigter and part of the EMF
     def get(self, userAddress):
         print(userAddress)
-        
         result = UserDepoist.query.filter_by(userAddress=userAddress).first()
 
         if not result:
@@ -317,6 +375,21 @@ class EMFDeposit(Resource):
         record = UserTxnGraph(userAddress=args['userAddress'], txnAmount=args['Deposit'])
         db.session.add(record)
         db.session.add(user)
+        db.session.commit()
+
+        # Refactor into a function or Class - Check extience of InsuranceFLoatAddress
+        InsuranceFloatCall = InsuranceFloat.query.filter_by(InsuranceFloatAddress=INSURANCEFLOATADDRESS).first()
+        if InsuranceFloatCall is None:
+            print("init InsuranceFloat")
+            SetFloat = float(0)
+            InsuranceFloatCall = InsuranceFloat(InsuranceFloatAddress=INSURANCEFLOATADDRESS, InsuranceFloatTotal=SetFloat)
+            db.session.add(InsuranceFloatCall)
+            db.session.commit()
+            
+        InsuranceFloatTotal = InsuranceFloatCall.InsuranceFloatTotal
+        NewInsuranceFloatTotal = InsuranceFloatTotal + float(args['Deposit'])
+        InsuranceFloatCall.InsuranceFloatTotal = NewInsuranceFloatTotal
+        db.session.add(InsuranceFloatCall)
         db.session.commit()
 
         # trigger deposit Web3.py Initializes SmartContract !!!!! <EMFDeposit> 
@@ -361,6 +434,21 @@ class EMFDeposit(Resource):
         # record transaction
         record = UserTxnGraph(userAddress=args['userAddress'], txnAmount=new_total)
         db.session.add(record)
+        db.session.commit()
+
+        # Refactor into a function or Class - Check extience of InsuranceFLoatAddress
+        InsuranceFloatCall = InsuranceFloat.query.filter_by(InsuranceFloatAddress=INSURANCEFLOATADDRESS).first()
+        if InsuranceFloatCall is None:
+            print("init InsuranceFloat")
+            SetFloat = float(0)
+            InsuranceFloatCall = InsuranceFloat(InsuranceFloatAddress=INSURANCEFLOATADDRESS, InsuranceFloatTotal=SetFloat)
+            db.session.add(InsuranceFloatCall)
+            db.session.commit()
+            
+        InsuranceFloatTotal = InsuranceFloatCall.InsuranceFloatTotal
+        NewInsuranceFloatTotal = InsuranceFloatTotal + float(args['Deposit'])
+        InsuranceFloatCall.InsuranceFloatTotal = NewInsuranceFloatTotal
+        db.session.add(InsuranceFloatCall)
         db.session.commit()
 
         if not result:
@@ -418,6 +506,21 @@ class EMFWithdraw(Resource):
         # record Withdraw transaction by taking latest balance - withdraw ammount
         record = UserTxnGraph(userAddress=args['userAddress'], txnAmount=new_balance)
         db.session.add(record)
+        db.session.commit()
+
+        # Refactor into a function or Class - Check extience of InsuranceFLoatAddress
+        InsuranceFloatCall = InsuranceFloat.query.filter_by(InsuranceFloatAddress=INSURANCEFLOATADDRESS).first()
+        if InsuranceFloatCall is None:
+            print("init InsuranceFloat")
+            SetFloat = float(0)
+            InsuranceFloatCall = InsuranceFloat(InsuranceFloatAddress=INSURANCEFLOATADDRESS, InsuranceFloatTotal=SetFloat)
+            db.session.add(InsuranceFloatCall)
+            db.session.commit()
+            
+        InsuranceFloatTotal = InsuranceFloatCall.InsuranceFloatTotal
+        NewInsuranceFloatTotal = InsuranceFloatTotal + float(args['Withdraw'])
+        InsuranceFloatCall.InsuranceFloatTotal = NewInsuranceFloatTotal
+        db.session.add(InsuranceFloatCall)
         db.session.commit()
 
         # record Withdraw
@@ -503,54 +606,6 @@ class ClaimDeposit(Resource):
         response_pay_load = {  "message":"User exist already", "existence":True  }
         return response_pay_load, 200
     
-    def patch(self, userAddress):
-        print("this is patch")
-        args = EMFDeposit_patch_args.parse_args()
-        result = UserDepoist.query.filter_by(userAddress=userAddress).first()
-        print(result)
-        
-        # takes userAddress and record depoist to make more depoist to the EMF
-        account_total = result.deposit 
-        print("current account total", account_total)
-        print("new deposit submitted", args['Deposit'])
-        print(type(args['Deposit']))
-        test_account_total = account_total + args['Deposit'] 
-        if test_account_total > 1000:
-            response_pay_load = {  "message":"Deposits cannot surpass 1000", "amountError":True }
-            return response_pay_load, 200
-
-        if args['Deposit'] == 0:
-            response_pay_load = {  "message":"Deposits cannot be zero", "amountError":True }
-            return response_pay_load, 200
-
-        # trigger deposit again to SmartContract !!!!! <EMFDeposit> 
-
-
-        # bug if 1100 make float
-        if account_total > 1000.00:
-            response_pay_load = {  "message":"Over the account Deposit limit", "overlimit":True }
-            return response_pay_load, 200
-        # change deposit to float for interest rate 
-        new_total = int(account_total) + int(args['Deposit'])
-
-        # record transaction
-        record = UserClaimTxnGraph(userAddress=args['userAddress'], txnAmount=new_total)
-        db.session.add(record)
-        db.session.commit()
-
-        if not result:
-            abort(404, message="User doesn't exist, cannot update")
-
-        # if args['userAddress']:
-        #     result.userAddress = args['userAddress']
-        if args['Deposit']:
-            print(new_total)
-            result.deposit = new_total
-            db.session.commit()
-
-        response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
-        return response_pay_load, 200
-
     # initialize contract with the first deposit
     def put(self, userAddress):
         args = ClaimDeposit_put_args.parse_args()
@@ -576,6 +631,7 @@ class ClaimDeposit(Resource):
         SubmitClaim=True )
 
         # JSON to Blob
+        # Contruct JSON BLOB for timeline JS to read on Front-end
         blob = JSONtoBLOB()
         # today's date is the start date
         today = date.today()
@@ -583,15 +639,18 @@ class ClaimDeposit(Resource):
         # End date
         yesterday = yearsago(years=1, from_date=today)
         print(yesterday)
-
+        current_month = datetime.now().strftime("%B")
         # Establish Timeline
         timeline = Timeline(userAddress=args['userAddress'], 
         MonthlyPayment=args['Deposit'],
         JSONData=blob,
         START_DATE=today,
-        END_DATE=yesterday
+        END_DATE=yesterday,
+        Month=current_month,
+        WasPaid=True,
           )
 
+        
         # Database Commit & add
         db.session.add(record)
         db.session.add(truth)
@@ -599,15 +658,247 @@ class ClaimDeposit(Resource):
         db.session.add(user)
         db.session.commit()
 
+        
+        # Refactor into a function or Class - Check extience of InsuranceFLoatAddress
+        InsuranceFloatCall = InsuranceFloat.query.filter_by(InsuranceFloatAddress=INSURANCEFLOATADDRESS).first()
+        if InsuranceFloatCall is None:
+            print("init InsuranceFloat")
+            SetFloat = float(0)
+            InsuranceFloatCall = InsuranceFloat(InsuranceFloatAddress=INSURANCEFLOATADDRESS, InsuranceFloatTotal=SetFloat)
+            db.session.add(InsuranceFloatCall)
+            db.session.commit()
+            
+        InsuranceFloatTotal = InsuranceFloatCall.InsuranceFloatTotal
+        NewInsuranceFloatTotal = InsuranceFloatTotal + float(args['Deposit'])
+        InsuranceFloatCall.InsuranceFloatTotal = NewInsuranceFloatTotal
+        db.session.add(InsuranceFloatCall)
+        db.session.commit()
+
         # trigger deposit Web3.py Initializes SmartContract !!!!! Insurance Claim Here
-
-
 
         response_pay_load = {  "message":"Inital deposit Made for Insurance Policy" }
         return response_pay_load, 200
 
+    def patch(self, userAddress):
+        print("Monthly Deposits call")
+        args = EMFDeposit_patch_args.parse_args()
+        result = UserClaimDepoist.query.filter_by(userAddress=userAddress).first()
+        
+        # checkifUserExist
+        if not result:
+            abort(404, message="User doesn't exist, cannot update")
+        
+        # takes userAddress and record depoist to make more depoist to the EMF
+        account_total = result.account_total 
+        print("current account total", account_total)
+        print("new deposit submitted", args['Deposit'])
+
+        # validation to checktimeline or "life of the contract"
+        CheckTimeline = Timeline.query.filter_by(userAddress=userAddress).first()
+        
+        # numberOfDays
+        today = date.today()
+        START_DATE = CheckTimeline.START_DATE
+        numberOfDays = daysago(today, START_DATE)
+        
+        # Question is this months deposit made? 
+        current_month = datetime.now().strftime("%B")
+        print(current_month)
+
+        LastMonthPayment = CheckTimeline.Month
+        WasItPaid = CheckTimeline.WasPaid
+
+        if LastMonthPayment == current_month:
+            response_pay_load = {  "message":"Verify Payment Early Payment for next Month" }
+            # Requires new API Endpoint
+            return response_pay_load, 200
+
+        test_account_total = account_total + args['Deposit'] 
+        if test_account_total > 200:
+            response_pay_load = {  "message":"Deposits cannot surpass 200", "amountError":True }
+            return response_pay_load, 200
+
+        if args['Deposit'] == 0:
+            response_pay_load = {  "message":"Deposits cannot be zero", "amountError":True }
+            return response_pay_load, 200
+
+        # trigger deposit again to SmartContract !!!!! <EMFDeposit> 
+
+
+        # bug if 1100 make float
+        if account_total > 1000.00:
+            response_pay_load = {  "message":"Over the account Deposit limit", "overlimit":True }
+            return response_pay_load, 200
+        # change deposit to float for interest rate 
+        new_total = int(account_total) + int(args['Deposit'])
+
+        # record transaction
+        record = UserClaimTxnGraph(userAddress=args['userAddress'], txnAmount=new_total)
+        db.session.add(record)
+        db.session.commit()
+
+        # Refactor into a function or Class - Check extience of InsuranceFLoatAddress
+        InsuranceFloatCall = InsuranceFloat.query.filter_by(InsuranceFloatAddress=INSURANCEFLOATADDRESS).first()
+        if InsuranceFloatCall is None:
+            print("init InsuranceFloat")
+            SetFloat = float(0)
+            InsuranceFloatCall = InsuranceFloat(InsuranceFloatAddress=INSURANCEFLOATADDRESS, InsuranceFloatTotal=SetFloat)
+            db.session.add(InsuranceFloatCall)
+            db.session.commit()
+            
+        InsuranceFloatTotal = InsuranceFloatCall.InsuranceFloatTotal
+        NewInsuranceFloatTotal = InsuranceFloatTotal + float(args['Deposit'])
+        InsuranceFloatCall.InsuranceFloatTotal = NewInsuranceFloatTotal
+        db.session.add(InsuranceFloatCall)
+        db.session.commit()
+
+        # if args['userAddress']:
+        #     result.userAddress = args['userAddress']
+        if args['Deposit']:
+            print(new_total)
+            result.deposit = new_total
+            db.session.commit()
+
+        response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
+        return response_pay_load, 200
+
+class PayNextMonthPremium(Resource):
+    def patch(self, userAddress):
+        print("PayNextMonthPremium Called")
+        args = EMFDeposit_patch_args.parse_args()
+        result = UserClaimDepoist.query.filter_by(userAddress=userAddress).first()
+        
+        # checkifUserExist
+        if not result:
+            abort(404, message="User doesn't exist, cannot update")
+        
+        # takes userAddress and record depoist to make more depoist to the EMF
+        account_total = result.account_total 
+        print("current account total", account_total)
+        print("new deposit submitted", args['Deposit'])
+
+        # validation to checktimeline or "life of the contract"
+        CheckTimeline = Timeline.query.filter_by(userAddress=userAddress).first()
+
+        # double check current month equal to self then 
+        # insert data in the timeline so next month is paid for already
+        # Question is this months deposit made? 
+        current_month = datetime.now().strftime("%B")
+        print(current_month)
+
+        LastMonthPayment = CheckTimeline.Month
+        WasItPaid = CheckTimeline.WasPaid
+
+        if LastMonthPayment == current_month:
+            response_pay_load = {  "message":"Verify Payment Early Payment for next Month" }
+            # Requires new API Endpoint
+            return response_pay_load, 200
+
+        test_account_total = account_total + args['Deposit'] 
+        if test_account_total > 200:
+            response_pay_load = {  "message":"Deposits cannot surpass 200", "amountError":True }
+            return response_pay_load, 200
+
+        if args['Deposit'] == 0:
+            response_pay_load = {  "message":"Deposits cannot be zero", "amountError":True }
+            return response_pay_load, 200
+
+        # trigger deposit again to SmartContract !!!!! <EMFDeposit> 
+
+
+        # bug if 1100 make float
+        if account_total > 1000.00:
+            response_pay_load = {  "message":"Over the account Deposit limit", "overlimit":True }
+            return response_pay_load, 200
+        # change deposit to float for interest rate 
+        new_total = int(account_total) + int(args['Deposit'])
+
+        # record transaction
+        record = UserClaimTxnGraph(userAddress=args['userAddress'], txnAmount=new_total)
+        db.session.add(record)
+        db.session.commit()
+
+        # Refactor into a function or Class - Check extience of InsuranceFLoatAddress
+        InsuranceFloatCall = InsuranceFloat.query.filter_by(InsuranceFloatAddress=INSURANCEFLOATADDRESS).first()
+        if InsuranceFloatCall is None:
+            print("init InsuranceFloat")
+            SetFloat = float(0)
+            InsuranceFloatCall = InsuranceFloat(InsuranceFloatAddress=INSURANCEFLOATADDRESS, InsuranceFloatTotal=SetFloat)
+            db.session.add(InsuranceFloatCall)
+            db.session.commit()
+            
+        InsuranceFloatTotal = InsuranceFloatCall.InsuranceFloatTotal
+        NewInsuranceFloatTotal = InsuranceFloatTotal + float(args['Deposit'])
+        InsuranceFloatCall.InsuranceFloatTotal = NewInsuranceFloatTotal
+        db.session.add(InsuranceFloatCall)
+        db.session.commit()
+
+        # if args['userAddress']:
+        #     result.userAddress = args['userAddress']
+        if args['Deposit']:
+            print(new_total)
+            result.deposit = new_total
+            db.session.commit()
+
+        response_pay_load = {  "message":"Transaction record and made!!", "overlimit":False }
+        return response_pay_load, 200
+
+
+class ViewInsurancePolicy(Resource):
+    def get(self, userAddress):
+        # test data structure of timeline how JSON events are created
+
+        return 'pass'
 api.add_resource(ClaimDeposit, "/jubilantmarket/ClaimDeposit/<string:userAddress>")
 
 
+        # check the timeline if a payment has been made or not 
+# https://networklore.com/start-task-with-flask/
+# https://pypi.org/project/APScheduler/
+@app.before_first_request
+def activate_job():
+    # sanityCheckfunction
+    # Defined functions before Hand
+    def timekeeper():
+        print("timekeeper")
+        # query all addresses who have a record deposit with us
+        userAddresses = UserClaimDepoist.query.all()
+        #  check all address by for loop
+        for userAddr in userAddresses:
+            userAddressPass = userAddr.userAddress
+            # improve query ttto last row
+            userTimeline = Timeline().query.filter_by(userAddress=userAddressPass).first()
+            print(userTimeline.userAddress)
+            print(userTimeline.START_DATE)
+            # we need to compare the START_DATE of the CONTRACT to TODAYs DATE 
+            #  Answer these questions 
+                # When was the last monthly payment made? 
+                # How many days ago was that?
+                # Are they beyond 60 days? 
+                    # if yes set SubmitClaim to False
+                    # if no leave truth table alone
+
+            for r in userTimeline:
+                print(r.userAddress)
+                print(r.START_DATE)
+        
+        return ("error")
+
+    
+    # call functions here
+    def run_job():
+        while True:
+            print("timekeeper")
+            try:
+                timekeeper()
+            except Exception as e:
+                print("An exception occurred: ", e) 
+            time.sleep(6)
+
+    thread = threading.Thread(target=run_job)
+    thread.start()
+
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

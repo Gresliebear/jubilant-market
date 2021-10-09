@@ -6,7 +6,7 @@ const NavBar = () => {
     return (
         <div className="navbox font-face-sn">
         
-                    <label><img src={Logo}/> </label>
+                    <label className="logoCss"><Link to="/"><img src={Logo}/> </Link> </label>
                     <Link to="/Emf"> Emergency Medical Fund </Link>
                     <Link to="/about">Insurance Coverage</Link>
                     <Link to="/users">Delegates Contributions</Link>

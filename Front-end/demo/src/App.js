@@ -11,6 +11,7 @@ import About from './pages/About';
 import Users from './pages/Users';
 import Emf from './pages/EMF';
 import Login from './pages/Login';
+import Home from './pages/Home'
 function App() {
 
 // you can a javascript 5 differents or more 
@@ -21,6 +22,7 @@ function App() {
     <Router>
       <NavBar/>
     <Switch>
+          
           <Route path="/about">
             <About />
           </Route>
@@ -33,7 +35,9 @@ function App() {
           <Route path="/login">
           <Login/>
           </Route>
-
+          <Route path="/">
+            <Home/>
+          </Route>
         </Switch>
     </Router>
     </div>

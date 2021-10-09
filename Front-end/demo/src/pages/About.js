@@ -5,6 +5,7 @@ import Withdraw from '../components/Withdraw';
 import Insurancetimeline from '../components/Insurancetimeline';
 const About = () => {
 
+    
     return (
         <div>
         <div className="flex-box font-face-sn CardPage"> 
@@ -15,7 +16,7 @@ const About = () => {
                 <div className="exchange"> 
                     <div className="column-child"> 
                         <h2> Purchase an Car Inusrance Policy by deposit. </h2>
-                        <p> Policy Details go here</p>
+                        <p> Policy Details $200 for car Insurance</p>
                         <div className="exchange-child"> 
                             <Depoist typeOfCall="Claim"> </Depoist>
                         </div>
