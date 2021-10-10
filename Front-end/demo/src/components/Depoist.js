@@ -238,7 +238,7 @@ const Depoist = (props) => {
                 }
         }
 
-    if (props.typeOfCall === 'CD'){
+    if (props.typeOfCall === 'Float'){
             console.log(props.typeOfCall)
     }
     }

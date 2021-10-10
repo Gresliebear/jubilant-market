@@ -3,6 +3,9 @@ import Upload from '../components/Upload';
 import Depoist from '../components/Depoist';
 import Withdraw from '../components/Withdraw';
 import Insurancetimeline from '../components/Insurancetimeline';
+import ViewUploads from '../components/ViewUploads';
+
+
 const About = () => {
 
     
@@ -15,7 +18,7 @@ const About = () => {
       
                 <div className="exchange"> 
                     <div className="column-child"> 
-                        <h2> Purchase an Car Inusrance Policy by deposit. </h2>
+                        <h2> Purchase an Car Insurance Policy by deposit. </h2>
                         <p> Policy Details $200 for car Insurance</p>
                         <div className="exchange-child"> 
                             <Depoist typeOfCall="Claim"> </Depoist>
@@ -28,6 +31,8 @@ const About = () => {
         </div>
 
         <Upload/>
+
+        <ViewUploads> </ViewUploads>
         </div>
     </div>
     )

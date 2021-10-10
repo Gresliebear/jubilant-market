@@ -12,6 +12,7 @@ import Users from './pages/Users';
 import Emf from './pages/EMF';
 import Login from './pages/Login';
 import Home from './pages/Home'
+import Verifier from './pages/Verifier';
 function App() {
 
 // you can a javascript 5 differents or more 
@@ -34,6 +35,9 @@ function App() {
           </Route>
           <Route path="/login">
           <Login/>
+          </Route>
+          <Route path="/verifier">
+          <Verifier/>
           </Route>
           <Route path="/">
             <Home/>

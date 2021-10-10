@@ -2,6 +2,8 @@ import React from 'react'
 import timeImage from '../images/Slide20.JPG'; // with import    
 import ownerImage from '../images/Slide21.JPG'; // with import   
 import verifyImage from '../images/Slide22.JPG'; // with import   
+import FinImage from '../images/Slide23.JPG'; // with import  
+import techImage from '../images/Slide24.JPG'; // with import  
 const Home = () => {
     return (
         <div className="flex-box CardPage font-face-sn homeCss">
@@ -19,11 +21,13 @@ const Home = () => {
             <h2>2) Submission of insurance claims data and the verification of that claim data.</h2>
             <img src={ownerImage} />
             <img src={verifyImage} />
-            <h2>3) Maintaining the Solvency of the Insurance Float </h2> <p>An  <b> Insurance Float </b> is the pool of money everyone 
-            contributes to and withdraws from to cover the cost of claims. </p> <p> By creating a 
-            <b> net positive</b> insurance float by taking assets (tokens) substracted by liabilities(token loans) 
+            <h2>3) Maintaining the Solvency of the Insurance Float </h2> 
+            <p>An  <b> Insurance Float </b> is the pool of money everyone 
+            contributes to and withdraws from to cover the <label className="boldRed"> <b> cost of claims</b></label>.</p>
+            <img src={FinImage} />
+             <p> By creating a <b> net positive</b> insurance float by taking assets (tokens) substracted by liabilities(token loans) 
             to equals the equity of Insurance float, we also refer to also health factor. </p>
-
+            <img src={techImage} />
 
         </div>
     )

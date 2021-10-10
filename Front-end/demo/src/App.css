@@ -470,3 +470,25 @@ box-sizing: border-box;
     margin: 8px 0;
     box-sizing: border-box;
 }
+
+.claimform {
+  margin: 20px;
+   width: 50%;
+   padding: 20px;
+   background-color: #fff;
+}
+
+.claimform img {
+  width: 50%;
+}
+
+#Aprrove { 
+  width: 165px;
+  height: 60px;
+  font-size: 20px;
+  
+  color:#fff;
+  background: #7cdb53;
+  margin: 2%;
+  border-width: 0px !important;
+}

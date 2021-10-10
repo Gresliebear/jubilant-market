@@ -315,7 +315,7 @@ def UploadCall():
         print(type(photo))
         PhotoBlob = photo.read()
         Photothumbnail = photo_to_thumbnail(photo.read())
-        PhotosTable(userAddress= photo=PhotoBlob, thumbnail=Photothumbnail )
+        # PhotosTable(userAddress= photo=PhotoBlob, thumbnail=Photothumbnail )
 
         # print(file.read())
         response_pay_load = {  "message":"Image Upload Successed"  }

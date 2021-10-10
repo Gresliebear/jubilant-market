@@ -18,9 +18,12 @@ import { fill, hexToRgb, colourIsLight, addMonthsToYear, addMonthsToYearAsDate, 
     // events Required 
 
     // due date
-    const now = new Date('2021-10-03')
+    // const now = new Date('2021-10-03')
+
     // Async function to view data from smart contract 
-    const START_YEAR = 2021
+    var d = new Date();
+    var n = d.getYear();
+    const START_YEAR = n
     const NUM_OF_YEARS = 1
     const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const MONTHS_PER_YEAR = 12
@@ -34,8 +37,7 @@ import { fill, hexToRgb, colourIsLight, addMonthsToYear, addMonthsToYearAsDate, 
     const start = new Date(`${START_YEAR}`)
     const end = new Date(`${START_YEAR + NUM_OF_YEARS}`)
     const MIN_ZOOM = 2
-    const MAX_ZOOM = 20
-    const buildTrackStartGap = () => Math.floor(Math.random() * MAX_TRACK_START_GAP)
+    const MAX_ZOOM = 20 
     const buildElementGap = () => Math.floor(Math.random() * MAX_ELEMENT_GAP)
 
 
@@ -59,12 +61,18 @@ import { fill, hexToRgb, colourIsLight, addMonthsToYear, addMonthsToYearAsDate, 
       
 
     const buildElements = trackId => {
+      var d = new Date();
+      var n = d.getMonth();
+
         const v = []
         let i = 1
-        let month = buildTrackStartGap()
+        let month = n // month set to zero? indexed array dumby
       
+        // Write this to visually fix the time line
+
         while (month < NUM_OF_MONTHS) {
-          let monthSpan = Math.floor(Math.random() * (MAX_MONTH_SPAN - (MIN_MONTH_SPAN - 1))) + MIN_MONTH_SPAN
+          // we need month Span from the start date to end date
+          let monthSpan = 12
       
           if (month + monthSpan > NUM_OF_MONTHS) {
             monthSpan = NUM_OF_MONTHS - month
@@ -72,6 +80,7 @@ import { fill, hexToRgb, colourIsLight, addMonthsToYear, addMonthsToYearAsDate, 
       
           const start = addMonthsToYearAsDate(START_YEAR, month)
           const end = addMonthsToYearAsDate(START_YEAR, month + monthSpan)
+          // the start & end is determined above but push to this v array?
           v.push(
             buildElement({
               trackId,
@@ -80,8 +89,8 @@ import { fill, hexToRgb, colourIsLight, addMonthsToYear, addMonthsToYearAsDate, 
               i,
             })
           )
-          const gap = buildElementGap()
-          month += monthSpan + gap
+          
+          month += monthSpan 
           i += 1
         }
       
@@ -182,7 +191,7 @@ class Insurancetimeline extends React.Component{
         
         return (
             <div className="timebox">
-                <h3> Smart Contract Policy 1 - Year Life Span  </h3>
+                <h3> Smart Contract Policy - 1 Year Life Span  </h3>
                 <Timeline
           scale={{
             start,
@@ -202,8 +211,7 @@ class Insurancetimeline extends React.Component{
           }}
           timebar={timebar}
           tracks={tracks}
-          now={now}
-          toggleTrackOpen={this.handleToggleTrackOpen}
+          
           enableSticky
           scrollToNow
         />

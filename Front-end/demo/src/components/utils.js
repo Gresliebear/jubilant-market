@@ -9,7 +9,7 @@ export const fill = n => {
   return arr
 }
 
-const COLORS = ['FF005D', '0085B6', '0BB4C1', '00D49D', 'FEDF03', '233D4D', 'FE7F2D', 'FCCA46', 'A1C181', '579C87']
+const COLORS = ['FF005D']
 
 export const randomColor = () => COLORS[Math.floor(Math.random() * COLORS.length)]
 
@@ -18,25 +18,6 @@ export const nextColor = () => {
   color = (color + 1) % COLORS.length
   return COLORS[color]
 }
-
-// let prevColor = null
-// export const nextRandomColor = () => {
-//   let c = randomColor()
-//   while (c === prevColor) {
-//     c = randomColor()
-//   }
-//   prevColor = c
-//   return c
-// }
-
-// export const randomColor = () => {
-//   const LETTERS = '0123456789ABCDEF'
-//   let color = ''
-//   for (let i = 0; i < 6; i += 1) {
-//     color += LETTERS[Math.floor(Math.random() * 16)]
-//   }
-//   return color
-// }
 
 export const hexToRgb = hex => {
   const v = parseInt(hex, 16)
@@ -67,12 +48,5 @@ export const addMonthsToYearAsDate = (year, monthsToAdd) => {
 }
 
 // Credit: https://jsfiddle.net/katowulf/3gtDf/
-const ADJECTIVES = [
-  'adamant'
-]
-const NOUNS = [
-  'ninja'
-]
-
 export const randomTitle = () =>
-  `${ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]} ${NOUNS[Math.floor(Math.random() * NOUNS.length)]}`
+  `Covered`
