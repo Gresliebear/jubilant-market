@@ -17,6 +17,7 @@ The functionality of Jubilent Market Brings together three parties
 - **Insurer**   (Company, DAO) -> Deploying Juilibant Market as a Pool or Wallet.
 - **Delegates** (Crypto traders, Investors) -> Contrubitions
 - **Verifier** (User Addresses, Automated scripts) -> Approving or Denying Claim
+
 **Techical Details:**
 
 The Jubilent Market project uilitzes the Hardhat framework & templates to test, 
